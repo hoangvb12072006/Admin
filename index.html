@@ -3,197 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Quản Lý Chat | HOANGKUN</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Tổng Đài Quản Lý CRM | HOANGKUN STORE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* --- ĐỒNG BỘ THEME NEON --- */
+        /* --- ĐỒNG BỘ THƯƠNG HIỆU HOANGKUN (TRẮNG/CAM) --- */
         :root {
-            --bg-gradient: radial-gradient(circle at center, #14141a 0%, #08080a 100%);
-            --card-bg: rgba(20, 20, 27, 0.85);
-            --text-color: #ffffff;
-            --text-muted: #94a3b8;
-            --neon-primary: #8b5cf6;
-            --neon-secondary: #06b6d4;
-            --btn-gradient: linear-gradient(90deg, #8b5cf6, #06b6d4);
-            --border-color: rgba(139, 92, 246, 0.25);
+            --primary: #ea580c; 
+            --primary-hover: #c2410c;
+            --bg-main: #f1f5f9;
+            --bg-panel: #ffffff;
+            --border-color: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-gray: #64748b;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
         body {
-            background: var(--bg-gradient);
-            color: var(--text-color);
+            background-color: var(--bg-main);
+            color: var(--text-dark);
             height: 100vh;
             display: flex;
-            padding: 20px;
             overflow: hidden;
-            gap: 20px;
         }
 
         /* --- CỘT BÊN TRÁI: DANH SÁCH KHÁCH HÀNG --- */
         .sidebar {
-            width: 300px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
+            width: 350px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(12px);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.02);
+            z-index: 10;
         }
         
         .sidebar-header {
-            padding: 20px;
+            padding: 25px 20px;
             border-bottom: 1px solid var(--border-color);
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--neon-secondary);
-            text-align: center;
-            letter-spacing: 1px;
+            background: #fff;
         }
 
-        .user-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
         }
+        
+        .brand-title span { color: var(--primary); }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--bg-main);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .search-box:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
+
+        .tab-menu {
+            display: flex;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .tab {
+            padding: 15px 0;
+            margin-right: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            cursor: pointer;
+            position: relative;
+        }
+        .tab.active { color: var(--primary); }
+        .tab.active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0;
+        }
+
+        .user-list { flex: 1; overflow-y: auto; padding: 15px; }
+        .user-list::-webkit-scrollbar { width: 5px; }
+        .user-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
 
         .user-item {
             padding: 15px;
             border-radius: 12px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             cursor: pointer;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 15px;
+            border: 1px solid transparent;
         }
-        .user-item:hover { background: rgba(255,255,255,0.05); }
-        .user-item.active { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--neon-primary); }
+        .user-item:hover { background: var(--bg-main); }
+        .user-item.active { background: #fff7ed; border: 1px solid #fed7aa; }
         
-        .user-avatar { width: 40px; height: 40px; background: #334155; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-secondary); }
-        .user-info { flex: 1; }
-        .user-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
-        .user-preview { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-        .unread-badge { background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        .user-avatar { 
+            width: 48px; height: 48px; background: #e2e8f0; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 700; color: var(--text-gray); font-size: 1.1rem;
+            position: relative;
+        }
+        .user-item.active .user-avatar { background: #fed7aa; color: var(--primary); }
+        
+        .status-dot { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: #10b981; border: 2px solid #fff; border-radius: 50%; }
+        
+        .user-info { flex: 1; overflow: hidden; }
+        .user-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .user-name { font-weight: 700; font-size: 0.95rem; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-time { font-size: 0.75rem; color: var(--text-gray); }
+        .user-preview { font-size: 0.85rem; color: var(--text-gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .unread-badge { background: #ef4444; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; margin-top: 5px; display: inline-block;}
 
         /* --- CỘT BÊN PHẢI: KHUNG CHAT ADMIN --- */
         .chat-area {
             flex: 1;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 0 35px rgba(139, 92, 246, 0.15);
+            background: #f8fafc;
         }
 
         .chat-header {
-            padding: 20px;
+            padding: 20px 30px;
+            background: var(--bg-panel);
             border-bottom: 1px solid var(--border-color);
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 20px 20px 0 0;
-            gap: 15px;
         }
-        .header-avatar { width: 45px; height: 45px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-secondary); border: 2px solid var(--neon-secondary);}
+        
+        .chat-header-client { display: flex; align-items: center; gap: 15px; }
+        .header-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: var(--text-gray); }
+        .header-name { font-weight: 800; font-size: 1.2rem; color: var(--text-dark); margin-bottom: 4px; }
+        .header-status { font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 6px; font-weight: 500;}
+        
+        .chat-actions button {
+            background: #fff; border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s;
+        }
+        .chat-actions button:hover { background: var(--bg-main); }
+        .chat-actions .btn-resolve { background: #10b981; color: #fff; border-color: #10b981; margin-left: 10px; }
+        .chat-actions .btn-resolve:hover { background: #059669; }
 
         .chat-messages {
             flex: 1;
-            padding: 25px;
+            padding: 30px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
+        .chat-messages::-webkit-scrollbar { width: 8px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        .message { max-width: 70%; padding: 12px 18px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; }
+        .message { max-width: 65%; padding: 14px 20px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; position: relative; }
         
-        /* Tin của khách gửi tới Admin */
-        .msg-received { background: rgba(255, 255, 255, 0.05); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        /* Tin của KHÁCH HÀNG gửi tới Admin (Bên trái) */
+        .msg-received { background: #ffffff; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border-color); color: var(--text-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         
-        /* Tin Admin phản hồi */
-        .msg-sent { background: var(--btn-gradient); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
+        /* Tin ADMIN phản hồi (Bên phải - Màu Cam) */
+        .msg-sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2); }
 
         .chat-input-area {
-            padding: 20px;
+            padding: 25px 30px;
+            background: var(--bg-panel);
             border-top: 1px solid var(--border-color);
             display: flex;
             gap: 15px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 0 0 20px 20px;
+            align-items: center;
         }
         
-        .chat-input { flex: 1; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); border-radius: 50px; padding: 0 25px; color: #fff; font-size: 0.95rem; outline: none; }
-        .chat-input:focus { border-color: var(--neon-secondary); }
+        .chat-input { 
+            flex: 1; background: var(--bg-main); border: 1px solid transparent; 
+            border-radius: 25px; padding: 15px 25px; color: var(--text-dark); 
+            font-size: 0.95rem; outline: none; transition: 0.3s;
+        }
+        .chat-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
         
-        .send-btn { background: var(--btn-gradient); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .send-btn:hover { transform: scale(1.1); }
+        .send-btn { 
+            background: var(--primary); border: none; width: 50px; height: 50px; 
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; 
+            justify-content: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
+        }
+        .send-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .send-btn svg { width: 22px; height: 22px; fill: #fff; transform: translateX(2px); }
 
     </style>
 </head>
 <body>
 
+    <!-- CỘT DANH SÁCH KHÁCH HÀNG -->
     <div class="sidebar">
-        <div class="sidebar-header">QUẢN TRỊ VIÊN</div>
+        <div class="sidebar-header">
+            <div class="brand-title">HOANGKUN <span>CRM</span></div>
+            <input type="text" class="search-box" placeholder="🔍 Tìm kiếm khách hàng...">
+        </div>
+        <div class="tab-menu">
+            <div class="tab active">Đang chờ (1)</div>
+            <div class="tab">Đã giải quyết</div>
+        </div>
         <div class="user-list">
+            <!-- User 1 -->
             <div class="user-item active">
-                <div class="user-avatar">K1</div>
-                <div class="user-info">
-                    <div class="user-name">Khách #8921</div>
-                    <div class="user-preview">Đang kết nối...</div>
+                <div class="user-avatar">
+                    K1
+                    <span class="status-dot"></span>
                 </div>
-                <div class="unread-badge">1</div>
+                <div class="user-info">
+                    <div class="user-top-row">
+                        <div class="user-name">Khách #8921</div>
+                        <div class="user-time">Vừa xong</div>
+                    </div>
+                    <div class="user-preview">Đang kết nối nhận hỗ trợ...</div>
+                    <div class="unread-badge">1 tin nhắn mới</div>
+                </div>
             </div>
+            <!-- User 2 -->
             <div class="user-item">
                 <div class="user-avatar">K2</div>
                 <div class="user-info">
-                    <div class="user-name">Khách #7742</div>
-                    <div class="user-preview">Cho mình hỏi lịch up video...</div>
+                    <div class="user-top-row">
+                        <div class="user-name">Khách #7742</div>
+                        <div class="user-time">10 p trước</div>
+                    </div>
+                    <div class="user-preview">Cho mình hỏi về code Web Bán Hàng</div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- CỘT KHUNG CHAT ADMIN -->
     <div class="chat-area">
         <div class="chat-header">
-            <div class="header-avatar">K1</div>
-            <div>
-                <div style="font-weight: 700; font-size: 1.1rem;">Khách #8921</div>
-                <div style="font-size: 0.8rem; color: #10b981;">● Đang truy cập trang chủ</div>
+            <div class="chat-header-client">
+                <div class="header-avatar">K1</div>
+                <div>
+                    <div class="header-name">Khách #8921</div>
+                    <div class="header-status">
+                        <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+                        Đang duyệt trang chủ
+                    </div>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button>Lịch sử</button>
+                <button class="btn-resolve">Hoàn tất hỗ trợ</button>
             </div>
         </div>
 
         <div class="chat-messages" id="chat-box">
-            <!-- Tin nhắn tĩnh đã được xóa. Firebase từ file main.js sẽ tự động đổ dữ liệu thật vào đây -->
+            <!-- Dữ liệu Firebase sẽ tự động đổ vào đây -->
         </div>
 
         <div class="chat-input-area">
-            <input type="text" class="chat-input" id="msg-input" placeholder="Nhập phản hồi cho Khách #8921..." autocomplete="off">
-            <!-- Đã gắn onClick gọi thẳng vào hàm sendMessage của main.js -->
+            <input type="text" class="chat-input" id="msg-input" placeholder="Nhập tin nhắn hỗ trợ cho Khách #8921..." autocomplete="off">
             <button class="send-btn" onclick="if(typeof sendMessage === 'function') sendMessage();">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
     </div>
 
-    <!-- 1. THƯ VIỆN FIREBASE (Phải nằm trên file main.js thì mới chạy được) -->
+    <!-- FIREBASE & MAIN SCRIPT -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
-        // Chỉ giữ lại code bắt phím Enter cho tiện, còn hàm đẩy tin nhắn đã nằm trong main.js
+        // Bắt sự kiện phím Enter
         document.getElementById('msg-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if(typeof sendMessage === 'function') sendMessage();
+                if(typeof window.sendMessage === 'function') window.sendMessage();
             }
         });
     </script>
     
-    <!-- 2. FILE CHỨA LOGIC DATABASE CỦA BẠN -->
+    <!-- NHÚNG FILE LOGIC CỦA BẠN VÀO ĐÂY -->
     <script src="main.js"></script>
 </body>
 </html>
