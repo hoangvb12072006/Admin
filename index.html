@@ -82,18 +82,22 @@
         }
 
         .chat-header { padding: 20px 30px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .chat-header-client { display: flex; align-items: center; gap: 15px; }
-        .header-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: var(--text-gray); }
-        .header-name { font-weight: 800; font-size: 1.2rem; color: var(--text-dark); margin-bottom: 4px; }
-        .header-status { font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 6px; font-weight: 500;}
+        .chat-header-client { display: flex; align-items: center; gap: 15px; flex: 1; overflow: hidden;}
+        .header-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: var(--text-gray); flex-shrink: 0;}
         
-        .chat-actions button { background: #fff; border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s; }
+        /* Chỉnh lại phần hiển thị tên để không bị chèn khi màn hình nhỏ */
+        .header-info-box { display: flex; flex-direction: column; overflow: hidden; }
+        .header-name { font-weight: 800; font-size: 1.2rem; color: var(--text-dark); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .header-status { font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 6px; font-weight: 500; white-space: nowrap;}
+        
+        .chat-actions { display: flex; gap: 10px; flex-shrink: 0; }
+        .chat-actions button { background: #fff; border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s; white-space: nowrap; }
         .chat-actions button:hover { background: var(--bg-main); }
-        .chat-actions .btn-resolve { background: #10b981; color: #fff; border-color: #10b981; margin-left: 10px; }
+        .chat-actions .btn-resolve { background: #10b981; color: #fff; border-color: #10b981; }
         .chat-actions .btn-resolve:hover { background: #059669; }
         
         /* Nút Back ẩn mặc định trên PC */
-        .back-btn { display: none; background: none; border: none; color: var(--text-dark); cursor: pointer; align-items: center; justify-content: center; margin-right: 5px;}
+        .back-btn { display: none; background: none; border: none; color: var(--text-dark); cursor: pointer; align-items: center; justify-content: center; margin-right: 5px; flex-shrink: 0;}
         .back-btn svg { width: 32px; height: 32px; fill: currentColor; }
 
         .chat-messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
@@ -107,14 +111,14 @@
         .chat-input-area { padding: 25px 30px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; }
         .chat-input { flex: 1; background: var(--bg-main); border: 1px solid transparent; border-radius: 25px; padding: 15px 25px; color: var(--text-dark); font-size: 0.95rem; outline: none; transition: 0.3s; }
         .chat-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
-        .chat-input:disabled { background: #e2e8f0; cursor: not-allowed; } /* Màu khi bị khóa chát */
+        .chat-input:disabled { background: #e2e8f0; cursor: not-allowed; } 
 
         .send-btn { background: var(--primary); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3); }
         .send-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .send-btn svg { width: 22px; height: 22px; fill: #fff; transform: translateX(2px); }
 
         /* ================================================== */
-        /*    ĐOẠN CSS TÁCH BIỆT RIÊNG CHO MOBILE             */
+        /* ĐOẠN CSS TÁCH BIỆT RIÊNG CHO MOBILE             */
         /* ================================================== */
         @media (max-width: 768px) {
             body { padding: 0; }
@@ -122,34 +126,39 @@
             .chat-area { position: fixed; top: 0; left: 100%; width: 100%; height: 100dvh; z-index: 999; transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
             body.mobile-in-chat .chat-area { left: 0; }
             .back-btn { display: flex; }
-            .chat-actions { display: none; } /* Trên mobile để cho gọn, mình có thể thêm nút Hoàn tất nhỏ xíu nếu muốn, nhưng hiện tại ẩn đi cho rộng màn */
             
+            /* Tùy chỉnh thanh Header trên Mobile để chứa nút Hoàn tất */
+            .chat-header { padding: 10px; gap: 5px;}
+            .chat-header-client { gap: 8px; }
+            .header-avatar { width: 38px; height: 38px; font-size: 1rem; }
+            .header-name { font-size: 1rem; }
+            
+            /* Giấu nút Lịch sử đi, chỉ giữ lại nút Hoàn Tất và làm nhỏ gọn lại */
+            .chat-actions button:not(.btn-resolve) { display: none; }
+            .chat-actions .btn-resolve { padding: 6px 10px; font-size: 0.75rem; margin-left: 0;}
+
             /* Ép font to chống thu phóng */
             .chat-input { font-size: 16px !important; padding: 12px 20px; }
-            .chat-header { padding: 15px 15px; }
-            .header-avatar { width: 42px; height: 42px; font-size: 1rem; }
-            .header-name { font-size: 1.1rem; }
+            
             .chat-messages { padding: 15px; gap: 12px; }
             .message { max-width: 85%; padding: 12px 16px; font-size: 0.95rem; }
             .chat-input-area { padding: 12px 15px; }
-            .send-btn { width: 45px; height: 45px; }
+            .send-btn { width: 45px; height: 45px; flex-shrink: 0; }
         }
     </style>
 </head>
 <body>
 
-    <!-- CỘT DANH SÁCH KHÁCH HÀNG (Bên ngoài) -->
     <div class="sidebar">
         <div class="sidebar-header">
             <div class="brand-title">HOANGKUN <span>CRM</span></div>
             <input type="text" class="search-box" placeholder="🔍 Tìm kiếm khách hàng...">
         </div>
         <div class="tab-menu">
-            <div class="tab active">Đang chờ (1)</div>
+            <div class="tab active">Đang chờ</div>
             <div class="tab">Đã giải quyết</div>
         </div>
         <div class="user-list">
-            <!-- Firebase sẽ đổ danh sách khách vào đây -->
             <div class="user-item active">
                 <div class="user-avatar">
                     K
@@ -157,26 +166,23 @@
                 </div>
                 <div class="user-info">
                     <div class="user-top-row">
-                        <div class="user-name">Khách Demo</div>
-                        <div class="user-time">Vừa xong</div>
+                        <div class="user-name">Đang tải dữ liệu...</div>
+                        <div class="user-time"></div>
                     </div>
-                    <div class="user-preview">Đang kết nối nhận hỗ trợ...</div>
-                    <div class="unread-badge">1 tin nhắn mới</div>
+                    <div class="user-preview">Vui lòng đợi trong giây lát</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CỘT KHUNG CHAT (Nằm ở trong, sẽ trượt ra khi bấm) -->
     <div class="chat-area">
         <div class="chat-header">
             <div class="chat-header-client">
-                <!-- Nút Quay Lại (Back) chỉ hiện trên Mobile -->
                 <button class="back-btn" onclick="closeChatMobile()">
                     <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                 </button>
                 <div class="header-avatar" id="active-guest-avatar">K</div>
-                <div>
+                <div class="header-info-box">
                     <div class="header-name" id="active-guest-name">Chọn khách hàng</div>
                     <div class="header-status">
                         <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
@@ -187,14 +193,12 @@
             
             <div class="chat-actions">
                 <button>Lịch sử</button>
-                <!-- 👇 NÚT HOÀN TẤT HỖ TRỢ DÀNH CHO ADMIN 👇 -->
-                <button class="btn-resolve" onclick="resolveChat()">Hoàn tất hỗ trợ</button>
+                <button class="btn-resolve" onclick="resolveChat()">Hoàn tất</button>
             </div>
         </div>
 
         <div class="chat-messages" id="chat-box">
-            <!-- Firebase sẽ tự động đổ dữ liệu vào đây -->
-        </div>
+            </div>
 
         <div class="chat-input-area">
             <input type="text" class="chat-input" id="msg-input" placeholder="Nhập tin nhắn hỗ trợ..." autocomplete="off">
@@ -204,7 +208,6 @@
         </div>
     </div>
 
-    <!-- FIREBASE & SCRIPT -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -213,7 +216,7 @@
         //  1. HÀM KẾT THÚC CHAT & GỬI LỆNH XUỐNG KHÁCH
         // ==========================================
         function resolveChat() {
-            // Kiểm tra xem Admin đã chọn phòng chat nào chưa (biến currentRoomId phải được khai báo toàn cục ở main.js của Admin)
+            // Kiểm tra xem Admin đã chọn phòng chat nào chưa
             if (typeof window.currentRoomId === 'undefined' || !window.currentRoomId) {
                 alert("Bạn chưa chọn khách hàng nào để kết thúc!");
                 return;
@@ -229,7 +232,7 @@
                 // Sau khi gửi lệnh thành công -> Khóa ô chat của Admin lại
                 const inputField = document.getElementById('msg-input');
                 if (inputField) {
-                    inputField.disabled = true; // Không cho gõ nữa
+                    inputField.disabled = true; 
                     inputField.placeholder = "Phiên chat này đã được Admin đóng...";
                 }
                 alert("Đã kết thúc phiên chat! Máy khách hàng sẽ tự động hiện form Đánh giá 5 Sao.");
@@ -244,7 +247,6 @@
         document.addEventListener('click', function(e) {
             // Ủy quyền sự kiện click: Khi bấm vào bất kỳ thẻ khách hàng nào (.user-item)
             if (e.target.closest('.user-item')) {
-                // Nếu là mobile, kéo khung chat ra
                 if (window.innerWidth <= 768) {
                     document.body.classList.add('mobile-in-chat');
                 }
@@ -271,7 +273,6 @@
         });
     </script>
     
-    <!-- Link file main.js của Admin -->
     <script src="main.js"></script>
 </body>
 </html>
