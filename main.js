@@ -19,6 +19,7 @@ let currentRoomId = null;
 let currentRoomRef = null;
 const chatBox = document.getElementById('chat-box');
 const userListDiv = document.querySelector('.user-list');
+const inputField = document.getElementById('msg-input'); // Gọi ô nhập text ra để tiện khóa/mở
 
 // 1. TỰ ĐỘNG QUÉT VÀ HIỂN THỊ DANH SÁCH KHÁCH HÀNG
 db.ref('chats').on('value', (snapshot) => {
@@ -50,7 +51,9 @@ db.ref('chats').on('value', (snapshot) => {
         userItem.innerHTML = `
             <div class="user-avatar">${gName.charAt(0).toUpperCase()}</div>
             <div class="user-info">
-                <div class="user-name">${gName}</div>
+                <div class="user-top-row">
+                    <div class="user-name">${gName}</div>
+                </div>
                 <div class="user-preview">${lastMsg}</div>
             </div>
         `;
@@ -61,13 +64,24 @@ db.ref('chats').on('value', (snapshot) => {
 // 2. ADMIN CLICK VÀO KHÁCH ĐỂ MỞ PHÒNG CHAT RIÊNG
 window.loadRoom = function(roomId, guestName, element) {
     currentRoomId = roomId;
+    window.currentRoomId = roomId; // Lưu biến toàn cục cho HTML gọi được
     if(chatBox) chatBox.innerHTML = ''; // Làm sạch khung chat
     
+    // Mở khóa lại ô chat nếu Admin bấm sang người khác
+    if(inputField) {
+        inputField.disabled = false;
+        inputField.placeholder = "Nhập tin nhắn hỗ trợ...";
+    }
+    
     // Đổi tên khách trên thanh Header của Admin
-    const headerNameBoxes = document.querySelectorAll('.chat-header div div');
-    if(headerNameBoxes.length > 0) headerNameBoxes[0].textContent = guestName;
-    const headerAvatar = document.querySelector('.header-avatar');
+    const headerNameBox = document.getElementById('active-guest-name');
+    if(headerNameBox) headerNameBox.textContent = guestName;
+    const headerAvatar = document.getElementById('active-guest-avatar');
     if(headerAvatar) headerAvatar.textContent = guestName.charAt(0).toUpperCase();
+
+    // Đổi màu chọn khách (Active state)
+    document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+    if(element) element.classList.add('active');
 
     // Tắt luồng lắng nghe của phòng cũ để chữ không bị loạn sang phòng mới
     if (currentRoomRef) currentRoomRef.off();
@@ -76,11 +90,20 @@ window.loadRoom = function(roomId, guestName, element) {
     currentRoomRef = db.ref('chats/' + roomId);
     currentRoomRef.on('child_added', (snapshot) => {
         const data = snapshot.val();
+        
+        // Nếu load lịch sử thấy đoạn chat này ĐÃ KẾT THÚC -> Khóa luôn ô chat của Admin
+        if (data.action === 'ADMIN_END_CHAT') {
+            if(inputField) {
+                inputField.disabled = true;
+                inputField.placeholder = "Phiên chat này đã được Admin đóng...";
+            }
+        }
+
         if(data.sender === 'system') return; // Không hiển thị text báo cáo hệ thống
         
         const msgDiv = document.createElement('div');
         msgDiv.className = data.sender === 'admin' ? 'message msg-sent' : 'message msg-received';
-        msgDiv.textContent = data.text;
+        msgDiv.innerHTML = data.text; // Dùng innerHTML để xử lý thẻ <br>
         
         if(chatBox) {
             chatBox.appendChild(msgDiv);
@@ -104,4 +127,29 @@ window.sendMessage = function() {
         });
         input.value = '';
     }
+}
+
+// 4. ADMIN KẾT THÚC CHAT & KÍCH HOẠT FORM BÊN KHÁCH
+window.resolveChat = function() {
+    if (!currentRoomId) {
+        alert("Bạn chưa chọn khách hàng nào để kết thúc!");
+        return;
+    }
+
+    // Đẩy lệnh xuống Firebase để máy khách tự động bung form
+    db.ref('chats/' + currentRoomId).push({
+        sender: 'system',
+        action: 'ADMIN_END_CHAT',
+        text: 'Admin Nguyễn Việt Hoàng đã hoàn tất hỗ trợ.',
+        timestamp: Date.now()
+    }).then(() => {
+        // Khóa mõm ô chat của Admin
+        if(inputField) {
+            inputField.disabled = true;
+            inputField.placeholder = "Phiên chat này đã được Admin đóng...";
+        }
+        alert("Đã kết thúc phiên chat! Máy khách hàng sẽ tự động bung form Đánh giá 5 Sao.");
+    }).catch(error => {
+        alert("Có lỗi xảy ra: " + error);
+    });
 }
