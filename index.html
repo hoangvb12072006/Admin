@@ -90,6 +90,7 @@
         .chat-actions button { background: #fff; border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s; }
         .chat-actions button:hover { background: var(--bg-main); }
         .chat-actions .btn-resolve { background: #10b981; color: #fff; border-color: #10b981; margin-left: 10px; }
+        .chat-actions .btn-resolve:hover { background: #059669; }
         
         /* Nút Back ẩn mặc định trên PC */
         .back-btn { display: none; background: none; border: none; color: var(--text-dark); cursor: pointer; align-items: center; justify-content: center; margin-right: 5px;}
@@ -106,6 +107,8 @@
         .chat-input-area { padding: 25px 30px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; }
         .chat-input { flex: 1; background: var(--bg-main); border: 1px solid transparent; border-radius: 25px; padding: 15px 25px; color: var(--text-dark); font-size: 0.95rem; outline: none; transition: 0.3s; }
         .chat-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
+        .chat-input:disabled { background: #e2e8f0; cursor: not-allowed; } /* Màu khi bị khóa chát */
+
         .send-btn { background: var(--primary); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3); }
         .send-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .send-btn svg { width: 22px; height: 22px; fill: #fff; transform: translateX(2px); }
@@ -115,34 +118,13 @@
         /* ================================================== */
         @media (max-width: 768px) {
             body { padding: 0; }
-
-            /* 1. Sidebar giãn ra chiếm toàn bộ màn hình 100% */
-            .sidebar {
-                width: 100%;
-                border-right: none;
-            }
-
-            /* 2. Khung chat được tách ra, đẩy sang lề phải chờ lệnh (Giống hệt Messenger) */
-            .chat-area {
-                position: fixed;
-                top: 0;
-                left: 100%; /* Giấu nó sang hẳn bên phải */
-                width: 100%;
-                height: 100dvh;
-                z-index: 999;
-                transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Hiệu ứng trượt ra mượt mà */
-            }
-
-            /* 3. Khi click vào tên khách, nó gán class này để đẩy khung chat trượt vào */
-            body.mobile-in-chat .chat-area {
-                left: 0;
-            }
-
-            /* 4. Hiện nút Quay Lại */
+            .sidebar { width: 100%; border-right: none; }
+            .chat-area { position: fixed; top: 0; left: 100%; width: 100%; height: 100dvh; z-index: 999; transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+            body.mobile-in-chat .chat-area { left: 0; }
             .back-btn { display: flex; }
-            .chat-actions { display: none; } /* Ẩn bớt nút bên phải cho thoáng */
-
-            /* 5. Ép font to chống thu phóng và tối ưu padding nhỏ lại */
+            .chat-actions { display: none; } /* Trên mobile để cho gọn, mình có thể thêm nút Hoàn tất nhỏ xíu nếu muốn, nhưng hiện tại ẩn đi cho rộng màn */
+            
+            /* Ép font to chống thu phóng */
             .chat-input { font-size: 16px !important; padding: 12px 20px; }
             .chat-header { padding: 15px 15px; }
             .header-avatar { width: 42px; height: 42px; font-size: 1rem; }
@@ -167,30 +149,19 @@
             <div class="tab">Đã giải quyết</div>
         </div>
         <div class="user-list">
-            <!-- 👇 Khi click vào sẽ gọi hàm mở khung chat trên Mobile 👇 -->
-            <div class="user-item active" onclick="openChatMobile()">
+            <!-- Firebase sẽ đổ danh sách khách vào đây -->
+            <div class="user-item active">
                 <div class="user-avatar">
-                    K1
+                    K
                     <span class="status-dot"></span>
                 </div>
                 <div class="user-info">
                     <div class="user-top-row">
-                        <div class="user-name">Khách #8921</div>
+                        <div class="user-name">Khách Demo</div>
                         <div class="user-time">Vừa xong</div>
                     </div>
                     <div class="user-preview">Đang kết nối nhận hỗ trợ...</div>
                     <div class="unread-badge">1 tin nhắn mới</div>
-                </div>
-            </div>
-            
-            <div class="user-item" onclick="openChatMobile()">
-                <div class="user-avatar">K2</div>
-                <div class="user-info">
-                    <div class="user-top-row">
-                        <div class="user-name">Khách #7742</div>
-                        <div class="user-time">10 p trước</div>
-                    </div>
-                    <div class="user-preview">Cho mình hỏi về code Web Bán Hàng</div>
                 </div>
             </div>
         </div>
@@ -200,22 +171,24 @@
     <div class="chat-area">
         <div class="chat-header">
             <div class="chat-header-client">
-                <!-- 👇 Nút Quay Lại (Back) chỉ hiện trên Mobile 👇 -->
+                <!-- Nút Quay Lại (Back) chỉ hiện trên Mobile -->
                 <button class="back-btn" onclick="closeChatMobile()">
                     <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                 </button>
-                <div class="header-avatar">K1</div>
+                <div class="header-avatar" id="active-guest-avatar">K</div>
                 <div>
-                    <div class="header-name">Khách #8921</div>
+                    <div class="header-name" id="active-guest-name">Chọn khách hàng</div>
                     <div class="header-status">
                         <span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; display: inline-block;"></span>
-                        Đang duyệt trang chủ
+                        Đang online
                     </div>
                 </div>
             </div>
+            
             <div class="chat-actions">
                 <button>Lịch sử</button>
-                <button class="btn-resolve">Hoàn tất hỗ trợ</button>
+                <!-- 👇 NÚT HOÀN TẤT HỖ TRỢ DÀNH CHO ADMIN 👇 -->
+                <button class="btn-resolve" onclick="resolveChat()">Hoàn tất hỗ trợ</button>
             </div>
         </div>
 
@@ -231,32 +204,65 @@
         </div>
     </div>
 
-    <!-- FIREBASE & MAIN SCRIPT -->
+    <!-- FIREBASE & SCRIPT -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-           <script>
+    <script>
         // ==========================================
-        //  LOGIC TRƯỢT KHUNG CHAT CHO MOBILE (BẢN FIX LỖI FIREBASE)
+        //  1. HÀM KẾT THÚC CHAT & GỬI LỆNH XUỐNG KHÁCH
         // ==========================================
-        
-        // 1. Dùng Event Delegation: Lắng nghe cú click trên toàn bộ tài liệu
+        function resolveChat() {
+            // Kiểm tra xem Admin đã chọn phòng chat nào chưa (biến currentRoomId phải được khai báo toàn cục ở main.js của Admin)
+            if (typeof window.currentRoomId === 'undefined' || !window.currentRoomId) {
+                alert("Bạn chưa chọn khách hàng nào để kết thúc!");
+                return;
+            }
+
+            // Gửi lệnh ADMIN_END_CHAT xuống cho máy khách bung bảng Đánh Giá
+            firebase.database().ref('chats/' + window.currentRoomId).push({
+                sender: 'system',
+                action: 'ADMIN_END_CHAT',
+                text: 'Admin Nguyễn Việt Hoàng đã hoàn tất hỗ trợ.',
+                timestamp: Date.now()
+            }).then(() => {
+                // Sau khi gửi lệnh thành công -> Khóa ô chat của Admin lại
+                const inputField = document.getElementById('msg-input');
+                if (inputField) {
+                    inputField.disabled = true; // Không cho gõ nữa
+                    inputField.placeholder = "Phiên chat này đã được Admin đóng...";
+                }
+                alert("Đã kết thúc phiên chat! Máy khách hàng sẽ tự động hiện form Đánh giá 5 Sao.");
+            }).catch(error => {
+                alert("Có lỗi xảy ra: " + error);
+            });
+        }
+
+        // ==========================================
+        //  2. LOGIC TRƯỢT KHUNG CHAT CHO MOBILE & CLICK
+        // ==========================================
         document.addEventListener('click', function(e) {
-            // Nếu người dùng bấm trúng bất kỳ cái gì nằm trong class 'user-item' (kể cả data mới load từ Firebase)
+            // Ủy quyền sự kiện click: Khi bấm vào bất kỳ thẻ khách hàng nào (.user-item)
             if (e.target.closest('.user-item')) {
-                // Kiểm tra nếu là màn hình điện thoại thì đẩy khung chat ra
+                // Nếu là mobile, kéo khung chat ra
                 if (window.innerWidth <= 768) {
                     document.body.classList.add('mobile-in-chat');
+                }
+                
+                // Mở khóa lại ô chat nếu lỡ chọn trúng người cũ bị khóa
+                const inputField = document.getElementById('msg-input');
+                if(inputField && inputField.disabled) {
+                    inputField.disabled = false;
+                    inputField.placeholder = "Nhập tin nhắn hỗ trợ...";
                 }
             }
         });
 
-        // 2. Hàm đóng khung chat (Quay lại danh sách)
         function closeChatMobile() {
             document.body.classList.remove('mobile-in-chat');
         }
 
-        // 3. Bắt sự kiện phím Enter gửi tin nhắn
+        // Bắt sự kiện phím Enter
         document.getElementById('msg-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -265,6 +271,7 @@
         });
     </script>
     
+    <!-- Link file main.js của Admin -->
     <script src="main.js"></script>
 </body>
 </html>
