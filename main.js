@@ -1,4 +1,4 @@
-// --- ADMIN: QUẢN LÝ ĐA LUỒNG KHÁCH HÀNG ---
+// --- ADMIN CRM: QUẢN LÝ ĐA LUỒNG & TỰ ĐỘNG CHUYỂN TAB ---
 const firebaseConfig = {
     apiKey: "AIzaSyD9Vi39Xuj8qf_bYjtZLAjpOkEvMIhzD1Y",
     authDomain: "hoangkun-chat.firebaseapp.com",
@@ -19,79 +19,172 @@ let currentRoomId = null;
 let currentRoomRef = null;
 const chatBox = document.getElementById('chat-box');
 const userListDiv = document.querySelector('.user-list');
-const inputField = document.getElementById('msg-input'); // Gọi ô nhập text ra để tiện khóa/mở
+const inputField = document.getElementById('msg-input');
 
-// 1. TỰ ĐỘNG QUÉT VÀ HIỂN THỊ DANH SÁCH KHÁCH HÀNG
+// --- BIẾN QUẢN LÝ TAB TRẠNG THÁI ---
+let currentAdminTab = 'pending'; // Bắt đầu ở tab 'Đang chờ'
+let allPendingRooms = [];
+let allResolvedRooms = [];
+
+// --- LOGIC BẤM CHUYỂN TAB TRÊN GIAO DIỆN ---
+document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.tab-menu .tab');
+    if(tabs.length >= 2) {
+        // Tab 1: Đang chờ xử lý
+        tabs[0].onclick = () => {
+            currentAdminTab = 'pending';
+            tabs[0].classList.add('active');
+            tabs[1].classList.remove('active');
+            renderRoomList();
+        };
+        // Tab 2: Đã hoàn tất
+        tabs[1].onclick = () => {
+            currentAdminTab = 'resolved';
+            tabs[1].classList.add('active');
+            tabs[0].classList.remove('active');
+            renderRoomList();
+        };
+    }
+});
+
+// 1. TỰ ĐỘNG QUÉT, PHÂN LOẠI KHÁCH HÀNG (SỐNG / CHẾT)
 db.ref('chats').on('value', (snapshot) => {
-    if(userListDiv) userListDiv.innerHTML = '';
+    allPendingRooms = [];
+    allResolvedRooms = [];
     const allRooms = snapshot.val();
     
-    if(!allRooms) return;
+    if(!allRooms) {
+        renderRoomList();
+        return;
+    }
 
-    // Đảo ngược mảng để phòng có tin nhắn mới nhất luôn bị đẩy lên đầu
+    // Đảo ngược để người nhắn mới nhất luôn nổi lên trên cùng
     const roomsArray = Object.keys(allRooms).map(roomId => {
         return { id: roomId, messages: allRooms[roomId] };
-    }).reverse();
+    }).reverse(); 
 
     roomsArray.forEach(room => {
         let lastMsg = 'Chưa có tin nhắn...';
         let gName = 'Khách Vô Danh';
+        let isResolved = false; // Cờ kiểm tra xem phòng này đã bị đóng chưa
         
-        // Quét tin nhắn để lấy Tên khách và Nội dung chat cuối cùng
+        // Quét lịch sử chat của phòng này
         Object.values(room.messages).forEach(msg => {
             if(msg.senderName) gName = msg.senderName;
             lastMsg = msg.text;
+            
+            // Nếu phát hiện có Lệnh Khóa Chat từ Admin -> Xác nhận là Đã xong
+            if(msg.action === 'ADMIN_END_CHAT') {
+                isResolved = true; 
+            }
         });
 
-        // Khởi tạo thẻ UI cho khách hàng bên cột trái
+        room.gName = gName;
+        room.lastMsg = lastMsg;
+
+        // Bỏ vào 2 giỏ riêng biệt
+        if(isResolved) {
+            allResolvedRooms.push(room);
+        } else {
+            allPendingRooms.push(room);
+        }
+    });
+
+    // Vẽ lại danh sách ra màn hình
+    renderRoomList();
+});
+
+// 2. HÀM VẼ DANH SÁCH RA MÀN HÌNH THEO TAB ĐANG CHỌN
+function renderRoomList() {
+    if(!userListDiv) return;
+    userListDiv.innerHTML = '';
+    
+    // Đang đứng ở Tab nào thì lấy mảng của Tab đó ra vẽ
+    const listToRender = currentAdminTab === 'pending' ? allPendingRooms : allResolvedRooms;
+
+    // Nếu tab trống trơn
+    if(listToRender.length === 0) {
+        userListDiv.innerHTML = `
+            <div style="text-align:center; padding: 40px 20px; color: #94a3b8;">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">📭</div>
+                <div style="font-size: 0.9rem; font-weight: 500;">Không có dữ liệu!</div>
+            </div>
+        `;
+        return;
+    }
+
+    // Đổ danh sách thẻ khách hàng
+    listToRender.forEach(room => {
         const userItem = document.createElement('div');
         userItem.className = 'user-item' + (currentRoomId === room.id ? ' active' : '');
-        userItem.onclick = () => loadRoom(room.id, gName, userItem);
+        userItem.onclick = () => loadRoom(room.id, room.gName, userItem);
         
+        // Đổi màu sắc: Đang chờ = Cam rực rỡ + Chấm xanh. Đã xong = Xám xịt
+        const dotHTML = currentAdminTab === 'pending' ? `<span class="status-dot"></span>` : ``;
+        const avatarStyle = currentAdminTab === 'pending' 
+            ? `background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);`
+            : `background: #cbd5e1; box-shadow: none;`; 
+
         userItem.innerHTML = `
-            <div class="user-avatar">${gName.charAt(0).toUpperCase()}</div>
+            <div class="user-avatar" style="${avatarStyle}">
+                ${room.gName.charAt(0).toUpperCase()}
+                ${dotHTML}
+            </div>
             <div class="user-info">
                 <div class="user-top-row">
-                    <div class="user-name">${gName}</div>
+                    <div class="user-name">${room.gName}</div>
                 </div>
-                <div class="user-preview">${lastMsg}</div>
+                <div class="user-preview">${room.lastMsg}</div>
             </div>
         `;
         userListDiv.appendChild(userItem);
     });
-});
+}
 
-// 2. ADMIN CLICK VÀO KHÁCH ĐỂ MỞ PHÒNG CHAT RIÊNG
+// 3. ADMIN CLICK VÀO KHÁCH ĐỂ MỞ PHÒNG CHAT
 window.loadRoom = function(roomId, guestName, element) {
     currentRoomId = roomId;
-    window.currentRoomId = roomId; // Lưu biến toàn cục cho HTML gọi được
-    if(chatBox) chatBox.innerHTML = ''; // Làm sạch khung chat
+    window.currentRoomId = roomId; 
+    if(chatBox) chatBox.innerHTML = ''; 
     
-    // Mở khóa lại ô chat nếu Admin bấm sang người khác
+    // Mở khóa ô text mặc định
     if(inputField) {
         inputField.disabled = false;
         inputField.placeholder = "Nhập tin nhắn hỗ trợ...";
     }
     
-    // Đổi tên khách trên thanh Header của Admin
+    // Đổi tên khách trên thanh Header
     const headerNameBox = document.getElementById('active-guest-name');
     if(headerNameBox) headerNameBox.textContent = guestName;
+    
     const headerAvatar = document.getElementById('active-guest-avatar');
-    if(headerAvatar) headerAvatar.textContent = guestName.charAt(0).toUpperCase();
+    if(headerAvatar) {
+        headerAvatar.textContent = guestName.charAt(0).toUpperCase();
+        
+        // Chỉnh sửa Header tùy theo khách đang Mở hay đã Khóa
+        if(currentAdminTab === 'resolved') {
+            headerAvatar.style.background = '#cbd5e1';
+            document.querySelector('.header-status').innerHTML = '<span style="width: 10px; height: 10px; background: #94a3b8; border-radius: 50%; display: inline-block;"></span> Đã đóng';
+            document.querySelector('.btn-resolve').style.display = 'none'; // Ẩn luôn nút hoàn tất nếu đã xong
+        } else {
+            headerAvatar.style.background = 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)';
+            document.querySelector('.header-status').innerHTML = '<span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; animation: pulse-green 2s infinite;"></span> Đang online';
+            document.querySelector('.btn-resolve').style.display = 'block';
+        }
+    }
 
-    // Đổi màu chọn khách (Active state)
+    // Cập nhật thẻ đang Focus
     document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
     if(element) element.classList.add('active');
 
-    // Tắt luồng lắng nghe của phòng cũ để chữ không bị loạn sang phòng mới
+    // Load dữ liệu tin nhắn
     if (currentRoomRef) currentRoomRef.off();
-    
-    // Mở luồng chat của phòng mới
     currentRoomRef = db.ref('chats/' + roomId);
+    
     currentRoomRef.on('child_added', (snapshot) => {
         const data = snapshot.val();
         
-        // Nếu load lịch sử thấy đoạn chat này ĐÃ KẾT THÚC -> Khóa luôn ô chat của Admin
+        // Nếu load thấy lệnh Đã Khóa -> Khóa ô text
         if (data.action === 'ADMIN_END_CHAT') {
             if(inputField) {
                 inputField.disabled = true;
@@ -99,11 +192,11 @@ window.loadRoom = function(roomId, guestName, element) {
             }
         }
 
-        if(data.sender === 'system') return; // Không hiển thị text báo cáo hệ thống
+        if(data.sender === 'system') return; 
         
         const msgDiv = document.createElement('div');
         msgDiv.className = data.sender === 'admin' ? 'message msg-sent' : 'message msg-received';
-        msgDiv.innerHTML = data.text; // Dùng innerHTML để xử lý thẻ <br>
+        msgDiv.innerHTML = data.text; 
         
         if(chatBox) {
             chatBox.appendChild(msgDiv);
@@ -112,10 +205,10 @@ window.loadRoom = function(roomId, guestName, element) {
     });
 }
 
-// 3. ADMIN GỬI TIN NHẮN VÀO PHÒNG ĐANG CHỌN
+// 4. ADMIN GỬI TIN NHẮN
 window.sendMessage = function() {
     if(!currentRoomId) {
-        alert('Vui lòng click chọn một khách hàng bên cột trái trước khi gửi tin nhắn!');
+        alert('Vui lòng click chọn một khách hàng!');
         return;
     }
     const input = document.getElementById('msg-input');
@@ -127,29 +220,4 @@ window.sendMessage = function() {
         });
         input.value = '';
     }
-}
-
-// 4. ADMIN KẾT THÚC CHAT & KÍCH HOẠT FORM BÊN KHÁCH
-window.resolveChat = function() {
-    if (!currentRoomId) {
-        alert("Bạn chưa chọn khách hàng nào để kết thúc!");
-        return;
-    }
-
-    // Đẩy lệnh xuống Firebase để máy khách tự động bung form
-    db.ref('chats/' + currentRoomId).push({
-        sender: 'system',
-        action: 'ADMIN_END_CHAT',
-        text: 'Admin Nguyễn Việt Hoàng đã hoàn tất hỗ trợ.',
-        timestamp: Date.now()
-    }).then(() => {
-        // Khóa mõm ô chat của Admin
-        if(inputField) {
-            inputField.disabled = true;
-            inputField.placeholder = "Phiên chat này đã được Admin đóng...";
-        }
-        alert("Đã kết thúc phiên chat! Máy khách hàng sẽ tự động bung form Đánh giá 5 Sao.");
-    }).catch(error => {
-        alert("Có lỗi xảy ra: " + error);
-    });
 }
