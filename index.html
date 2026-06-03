@@ -235,23 +235,28 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-    <script>
+           <script>
         // ==========================================
-        //  LOGIC TRƯỢT KHUNG CHAT CHO MOBILE
+        //  LOGIC TRƯỢT KHUNG CHAT CHO MOBILE (BẢN FIX LỖI FIREBASE)
         // ==========================================
-        function openChatMobile() {
-            // Kiểm tra nếu màn hình đang nhỏ (như điện thoại) thì mới kích hoạt hiệu ứng trượt
-            if (window.innerWidth <= 768) {
-                document.body.classList.add('mobile-in-chat');
+        
+        // 1. Dùng Event Delegation: Lắng nghe cú click trên toàn bộ tài liệu
+        document.addEventListener('click', function(e) {
+            // Nếu người dùng bấm trúng bất kỳ cái gì nằm trong class 'user-item' (kể cả data mới load từ Firebase)
+            if (e.target.closest('.user-item')) {
+                // Kiểm tra nếu là màn hình điện thoại thì đẩy khung chat ra
+                if (window.innerWidth <= 768) {
+                    document.body.classList.add('mobile-in-chat');
+                }
             }
-        }
+        });
 
+        // 2. Hàm đóng khung chat (Quay lại danh sách)
         function closeChatMobile() {
-            // Khi bấm nút mũi tên Back, xóa class để khung chat trượt về lại bên phải
             document.body.classList.remove('mobile-in-chat');
         }
 
-        // Bắt sự kiện phím Enter
+        // 3. Bắt sự kiện phím Enter gửi tin nhắn
         document.getElementById('msg-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
