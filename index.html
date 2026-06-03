@@ -1,1459 +1,206 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kun Game Center</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* CSS cho Dropdown Thông Báo */
-        .notification-dropdown {
-            display: none;
-            position: absolute;
-            top: 50px;
-            right: -10px;
-            width: 320px;
-            background: var(--black-80);
-            border: 1px solid var(--black-60);
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            z-index: 1000;
-            padding: 0;
-            font-family: var(--font-nunito);
-            text-align: left;
-        }
-        .notification-dropdown.show { display: block; }
-        .noti-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid var(--black-60); }
-        .noti-header h4 { margin: 0; font-size: 16px; color: var(--white-100); }
-        .mark-read { font-size: 12px; color: var(--brand-100); cursor: pointer; transition: 0.2s; }
-        .mark-read:hover { color: var(--white-100); }
-        .noti-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
-        .noti-item { display: flex; gap: 12px; padding: 15px; border-bottom: 1px solid var(--black-60); }
-        .noti-item.unread { background: rgba(104, 66, 255, 0.1); }
-        .noti-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; background: var(--brand-100); flex-shrink: 0; }
-        .noti-content p { margin: 0 0 5px 0; font-size: 13px; color: var(--white-100); line-height: 1.4; }
-        .noti-time { font-size: 11px; color: var(--white-50); }
-        
-        /* ==========================================================================
-           1. HỆ THỐNG BIẾN MÀU & FONT NUNITO TỪ CRAZYGAMES
-           ========================================================================== */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Quản Lý Chat | HOANGKUN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ĐỒNG BỘ THEME NEON --- */
         :root {
-            --brand-0: #fff; --brand-20: #e1d9ff; --brand-30: #d2c6ff; --brand-40: #c3b3ff;
-            --brand-50: #b4a1ff; --brand-60: #a48eff; --brand-70: #957bff; --brand-80: #8668ff;
-            --brand-100: #6842ff; --brand-120: #5335cc; --brand-130: #492eb3; --brand-140: #3e2899;
-            --brand-150: #342180; --brand-160: #2a1a66; --brand-180: #150d33; --brand-200: #07050f;
-            --black-10: #474967; --black-20: #434561; --black-40: #373952; --black-50: #2f3148;
-            --black-60: #28293d; --black-70: #212233; --black-80: #1a1b28; --black-90: #13141e;
-            --black-100: #0c0d14; --white-10: #666a7f; --white-20: #767a8e; --white-30: #878a9e;
-            --white-40: #989bae; --white-50: #aaadbe; --white-60: #bdbfce; --white-70: #d0d2de;
-            --white-80: #e5e6ee; --white-90: #eff0f7; --white-100: #f9faff;
-            --success-100: #4af0a7; --alert-40: #f59ebe; --alert-60: #f16e9d; --alert-100: #e70d5c;
-            --warning-100: #ffac4a; --warning-200: #3c2a16;
-            
-            --sidebar-width: 216px;
-            --sidebar-collapsed-width: 76px;
-            --header-height: 60px;
-            --font-nunito: "Nunito", "Nunito Fallback", sans-serif;
+            --bg-gradient: radial-gradient(circle at center, #14141a 0%, #08080a 100%);
+            --card-bg: rgba(20, 20, 27, 0.85);
+            --text-color: #ffffff;
+            --text-muted: #94a3b8;
+            --neon-primary: #8b5cf6;
+            --neon-secondary: #06b6d4;
+            --btn-gradient: linear-gradient(90deg, #8b5cf6, #06b6d4);
+            --border-color: rgba(139, 92, 246, 0.25);
         }
 
-        @font-face { font-family: Nunito; font-style: normal; font-weight: 400; font-display: swap; src: url(https://builds.crazygames.com/portal-web/_next/static/media/abfec168c8990f67-s.woff2) format("woff2"); }
-        @font-face { font-family: Nunito; font-style: normal; font-weight: 700; font-display: swap; src: url(https://builds.crazygames.com/portal-web/_next/static/media/3131c862d4942660-s.woff2) format("woff2"); }
-        @font-face { font-family: Nunito; font-style: normal; font-weight: 800; font-display: swap; src: url(https://builds.crazygames.com/portal-web/_next/static/media/e1694c6cb47c173f-s.woff2) format("woff2"); }
-        @font-face { font-family: Nunito; font-style: normal; font-weight: 900; font-display: swap; src: url(https://builds.crazygames.com/portal-web/_next/static/media/6a9c36ea9dc9b36b-s.woff2) format("woff2"); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
 
-        /* ==========================================================================
-           2. RESET CƠ BẢN
-           ========================================================================== */
-        html, body { margin: 0; padding: 0; overflow-x: hidden; width: 100%; }
-        body { overflow-y: scroll; scrollbar-gutter: stable; background: var(--black-100); color: var(--white-100); font-family: var(--font-nunito); display: flex; }
-        a { text-decoration: none; font-weight: 700; }
-
-        @keyframes scroll-gradient { 0% { background-position: 0 50%; } 100% { background-position: 350% 0; } }
-        @keyframes logo-buzz { 50% { transform: translateX(1.5px) rotate(2deg); } 100% { transform: translateX(-1.5px) rotate(-2deg); } }
-
-        .animated-green-gradient {
-            color: var(--black-100); background: linear-gradient(90deg, #49f3c3, #64f17e, #49f3c3); background-size: 700% 100%;
-            animation: scroll-gradient 3s linear infinite; transition: filter 0.2s ease, transform 0.2s ease; border: none; font-weight: 800; cursor: pointer;
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            padding: 20px;
+            overflow: hidden;
+            gap: 20px;
         }
-        .animated-green-gradient:hover { filter: brightness(1.2); transform: scale(1.05); }
 
-        /* ==========================================================================
-           3. SIDEBAR (THANH MENU TRÁI)
-           ========================================================================== */
-        .sidebar { 
-            width: var(--sidebar-width); background: var(--black-100); height: 100vh; position: fixed; display: flex; flex-direction: column; 
-            z-index: 100; border-right: 1px solid var(--black-60); overflow-x: hidden; transition: width 0.3s ease;
+        /* --- CỘT BÊN TRÁI: DANH SÁCH KHÁCH HÀNG --- */
+        .sidebar {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(12px);
         }
-        .sidebar.collapsed { width: var(--sidebar-collapsed-width); }
-        .sidebar.collapsed span, .sidebar.collapsed .sidebar-footer, .sidebar.collapsed .logo-text { display: none !important; }
-
-        .logo-area { height: 60px; display: flex; align-items: center; padding: 0 20px; gap: 15px; width: 100%; box-sizing: border-box; }
-        .menu-icon { font-size: 20px; color: var(--white-100); cursor: pointer; }
-        .sidebar .logo { display: flex; align-items: center; gap: 10px; color: var(--white-100); }
-        .logo-icon { animation: logo-buzz 3s linear infinite; }
-        .logo-text { display: flex; flex-direction: column; line-height: 0.9; font-weight: 900; font-size: 18px; letter-spacing: -0.5px; }
-
-        .sidebar-scroll { width: 100%; overflow-y: hidden; overflow-x: hidden; padding-top: 10px; flex: 1; }
-        .sidebar-scroll:hover { overflow-y: auto; }
-        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--white-50); border-radius: 4px; }
-
-        .menu-list { padding: 0; margin: 0; display: flex; flex-direction: column; }
-        .menu-list li { 
-            list-style: none; width: 100%; height: 40px; display: flex; align-items: center; justify-content: flex-start;
-            cursor: pointer; font-size: 15px; font-weight: 700; color: var(--white-30); padding: 0 20px; box-sizing: border-box; border-left: 4px solid transparent; 
-        }
-        .menu-list li i { font-size: 18px; color: var(--white-30); transition: 0.2s ease; width: 24px; text-align: center; margin-right: 12px; }
-        .menu-list li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: 0.2s ease; }
-        .menu-list li:hover { color: var(--white-100); background: var(--black-90); }
-        .menu-list li:hover i, .menu-list li:hover span { color: var(--white-100); transform: translateX(4px); }
-        .menu-list li.active { border-left: 4px solid var(--brand-100); color: var(--brand-100); background: var(--black-80); }
-        .menu-list li.active i { color: var(--brand-100); }
-        .divider { border: 0; border-top: 1px solid var(--black-60); margin: 15px 20px; }
-
-        .sidebar-footer { padding: 20px; display: flex; flex-direction: column; gap: 15px; background: var(--black-100); border-top: 1px solid var(--black-60);}
-        .contact-btn { background: var(--brand-100); color: var(--white-100); border: none; padding: 12px 15px; border-radius: 12px; font-family: var(--font-nunito); font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease; width: 100%; }
-        .contact-btn:hover { background: var(--brand-80); transform: translateY(-2px); }
-        .language-selector { background: var(--black-60); border: 1px solid var(--black-40); padding: 10px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--white-50); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
-        .language-selector:hover { border-color: var(--brand-100); color: var(--white-100); }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 8px 12px; padding-top: 5px; }
-        .footer-links a { color: var(--white-30); font-size: 12px; font-weight: 700; transition: color 0.2s ease; }
-        .footer-links a:hover { color: var(--white-100); }
-        .social-icons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
-        .social-icons a { color: var(--white-50); background: var(--black-60); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.2s ease; }
-        .social-icons a:hover { color: var(--white-100); background: var(--brand-100); transform: translateY(-3px); }
-
-        /* ==========================================================================
-           4. KHUNG NỘI DUNG CHÍNH & TOP BAR
-           ========================================================================== */
-        .content { 
-            margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); 
-            min-width: 0; padding: 20px 40px; box-sizing: border-box; transition: margin-left 0.3s ease, width 0.3s ease;
-        }
-        .content.expanded { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
-
-        .top-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 60px; padding: 0 20px; position: sticky; top: 0; z-index: 99; background: var(--black-100); }
-        .search-container { flex: 1; max-width: 460px; position: relative; z-index: 1; margin-right: auto; }
-        .search-box { position: relative; width: 100%; }
-        .search-box input { width: 100%; height: 40px; background-color: var(--black-40); border: 1px solid transparent; border-radius: 30px; padding: 0 45px 0 20px; color: var(--white-100); font-family: var(--font-nunito); font-weight: 700; font-size: 16px; outline: none; transition: all 0.2s; box-sizing: border-box; }
-        .search-box input:focus { border-color: var(--brand-100); background-color: var(--black-50); box-shadow: 0 0 0 4px rgba(104, 66, 255, 0.1); }
-        .search-box input::placeholder { color: var(--white-30); font-weight: 700; }
-        .search-icon-wrapper { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--white-30); pointer-events: none; font-size: 15px; }
         
-        .user-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; z-index: 2; }
-        .action-icon-btn { width: 40px; height: 40px; background-color: var(--black-40); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--white-50); cursor: pointer; transition: 0.2s; position: relative;}
-        .action-icon-btn:hover { background-color: var(--black-20); color: var(--white-100); transform: scale(1.05); }
-        .notification-badge { position: absolute; top: -2px; right: 3px; background-color: var(--alert-100); color: white; font-size: 10px; font-weight: 900; min-width: 18px; height: 14px; border-radius: 10px; display: flex; justify-content: center; align-items: center; border: 2px solid var(--black-100); pointer-events: none;}
-        .login-btn { background: var(--brand-100); color: white; border: none; height: 40px; padding: 0 24px; border-radius: 30px; font-weight: 800; font-size: 16px; cursor: pointer; margin-left: 8px; transition: all 0.25s ease; white-space: nowrap; }
-        .login-btn:hover { filter: brightness(1.1); background: var(--brand-80); box-shadow: 0 4px 15px rgba(104, 66, 255, 0.4); }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--neon-secondary);
+            text-align: center;
+            letter-spacing: 1px;
+        }
 
-        /* ==========================================================================
-           6. LƯỚI GAME & MÀN HÌNH CHƠI
-           ========================================================================== */
-        h2 { font-size: 24px; margin-bottom: 15px; font-weight: 900; color: var(--white-100); }
-        .category-slider { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 30px; scrollbar-width: none; }
-        .category-slider::-webkit-scrollbar { display: none; }
-        .cat-card { min-width: 200px; height: 80px; border-radius: 12px; padding: 15px; box-sizing: border-box; display: flex; align-items: flex-end; font-weight: 900; font-size: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: inset 0 -30px 40px rgba(0,0,0,0.3); border: 2px solid transparent; position: relative; overflow: hidden; }
-        .cat-card:hover { border-color: var(--white-50); background-color: var(--black-60); }
-        .cat-card span { position: relative; z-index: 2; pointer-events: none; }
-        .cat-icon { position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 65px; height: auto; z-index: 1; opacity: 0.9; transition: transform 0.3s ease; pointer-events: none; }
-        .cat-card:hover .cat-icon { transform: translateY(-50%) scale(1.15); }
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
 
-        .hero-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 150px; gap: 15px; margin-bottom: 40px; grid-auto-flow: dense; }
-        .span-2x2 { grid-column: span 2; grid-row: span 2; }
-        .span-1x1 { grid-column: span 1; grid-row: span 1; }
-        .standard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 40px; }
-
-        .card, .hero-card { background: var(--black-70); border-radius: 16px; overflow: hidden; position: relative; cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent; box-sizing: border-box; }
-        .card { height: 130px; }
-        .card:hover, .hero-card:hover { z-index: 10; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: var(--brand-100); }
-        .card img, .hero-card img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease; }
-        .card:hover img, .hero-card:hover img { transform: scale(1.05); }
-
-        .badge { position: absolute; top: 8px; left: 8px; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 5px; color: var(--black-100); z-index: 2; box-shadow: 4px 4px 20px 0 rgba(0,0,0,0.5); }
-        .badge i { font-size: 10px; }
-        .badge-top { background: linear-gradient(90deg,#ffc352,#faff9c); }
-        .badge-originals { background: var(--white-100); color: var(--brand-100); }
-        .badge-new { background: linear-gradient(90deg,#c93dd1,#8a4fff); color: var(--white-100); }
-        .badge-updated { background: linear-gradient(90deg,#28c7df,#5082ff); color: var(--white-100);}
-        .badge-hot { background: linear-gradient(90deg,#ff2f0f,#ff8b2d); color: var(--white-100); }
-        .game-title-overlay { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); padding: 30px 15px 10px 15px; color: var(--white-100); font-weight: 800; font-size: 16px; z-index: 2; box-sizing: border-box; pointer-events: none; }
-        .span-2x2 .game-title-overlay { font-size: 24px; padding-top: 50px; }
-
-        .player-layout { display: flex; gap: 20px; align-items: flex-start; max-width: 100%; width: 100%; }
-        .left-column { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
-        .main-game-area { background: var(--black-80); border-radius: 16px; padding: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.3); width: 100%; box-sizing: border-box; }
-        .iframe-container { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; }
-        #gameFrame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; display: block; }
+        .user-item {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-item:hover { background: rgba(255,255,255,0.05); }
+        .user-item.active { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--neon-primary); }
         
-        .game-toolbar { display: flex; flex-direction: row; justify-content: space-between; align-items: center; margin-top: 15px; padding: 12px 20px; background: var(--black-80); border-radius: 12px; width: 100%; box-sizing: border-box; }
-        .game-title { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 18px; color: var(--white-100); white-space: nowrap; }
-        .game-actions { display: flex; flex-direction: row; align-items: center; gap: 8px; flex-wrap: nowrap; }
-        .game-actions .action-btn { background: var(--black-60); border: none; color: var(--white-100); padding: 8px 16px; border-radius: 30px; cursor: pointer; font-size: 14px; font-weight: 800; transition: 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .game-actions .action-btn:hover { background: var(--black-50); }
-        .game-actions .action-icon-btn { width: 36px; height: 36px; background-color: var(--black-60); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--white-100); cursor: pointer; transition: 0.2s; border: none; font-size: 14px; flex-shrink: 0; }
-        .game-actions .action-icon-btn:hover { background-color: var(--black-50); transform: scale(1.05); }
+        .user-avatar { width: 40px; height: 40px; background: #334155; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-secondary); }
+        .user-info { flex: 1; }
+        .user-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+        .user-preview { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        .unread-badge { background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
 
-        .game-loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--black-90); display: flex; flex-direction: column; gap: 20px; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.5s ease; }
-        .loader-logo-svg { animation: pulse-glow 1s ease-in-out infinite alternate; }
-        @keyframes pulse-glow { 0% { transform: scale(0.9); opacity: 0.7; filter: drop-shadow(0 0 10px rgba(104, 66, 255, 0.4)); } 100% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 25px rgba(104, 66, 255, 1)); } }
+        /* --- CỘT BÊN PHẢI: KHUNG CHAT ADMIN --- */
+        .chat-area {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 35px rgba(139, 92, 246, 0.15);
+        }
 
-        .game-details-container { margin-top: 20px; padding: 0 10px; color: var(--white-100); font-family: var(--font-nunito); }
-        .promo-banner { background: linear-gradient(90deg, #492eb3, #2a1a66); border-radius: 12px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
-        .promo-banner:hover { filter: brightness(1.1); }
-        .promo-content { display: flex; align-items: center; gap: 15px; font-weight: 800; font-size: 16px; }
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px 20px 0 0;
+            gap: 15px;
+        }
+        .header-avatar { width: 45px; height: 45px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-secondary); border: 2px solid var(--neon-secondary);}
 
-        .breadcrumbs { font-size: 13px; color: var(--brand-60); font-weight: 700; margin-bottom: 15px; }
-        .breadcrumbs span { color: var(--white-50); }
-        .desc-title { font-size: 28px; font-weight: 900; margin: 0 0 15px 0; }
-        .share-btn-large { background: var(--black-60); border: none; color: var(--white-100); padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 25px; transition: 0.2s; }
-        .share-btn-large:hover { background: var(--black-50); }
+        .chat-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-        .metadata-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
-        .meta-row { display: flex; align-items: baseline; font-size: 14px; line-height: 1.5; }
-        .meta-label { width: 150px; color: var(--white-30); font-weight: 700; text-transform: capitalize; flex-shrink: 0; }
-        .meta-value { color: var(--white-100); font-weight: 700; flex: 1; }
-        .meta-value.purple-text { color: var(--brand-60); cursor: pointer; }
-        .meta-value.purple-text:hover { color: var(--brand-100); }
-        .meta-sub { color: var(--white-30); font-weight: 400; font-size: 12px; margin-left: 5px; }
-
-        .tags-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
-        .tag-chip { background: var(--black-60); border: 1px solid var(--black-50); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; color: var(--white-50); cursor: pointer; transition: 0.2s; }
-        .tag-chip:hover { border-color: var(--brand-100); color: var(--white-100); }
-        .tag-count { color: var(--brand-60); margin-left: 5px; }
-
-        .game-article { color: var(--white-30); font-size: 15px; line-height: 1.7; padding-bottom: 50px; }
-        .game-article p { margin: 0 0 15px 0; }
-        .game-article h3 { color: var(--white-100); font-size: 20px; font-weight: 800; margin: 25px 0 15px 0; }
-        .game-article ul { padding-left: 20px; margin-bottom: 20px; }
-        .game-article li { margin-bottom: 8px; }
-        .game-article a { color: var(--brand-60); text-decoration: none; transition: 0.2s; }
-        .game-article a:hover { color: var(--brand-100); text-decoration: underline; }
-
-        .return-to-game-wrapper { display: flex; justify-content: center; margin-top: 40px; padding-bottom: 20px; }
-        .btn-return-game { background: var(--brand-100); color: var(--white-100); border: none; padding: 12px 24px; border-radius: 30px; font-family: var(--font-nunito); font-weight: 800; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
-        .btn-return-game:hover { background: var(--brand-80); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(104, 66, 255, 0.4); }
-
-        .suggested-sidebar { width: 320px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; flex-shrink: 0; align-content: start; }
-        .suggested-card { width: 100%; aspect-ratio: 16/10; border-radius: 12px; overflow: hidden; cursor: pointer; position: relative; transition: all 0.2s ease; border: 2px solid transparent; background: var(--black-70); }
-        .suggested-card:hover { border-color: var(--brand-100); transform: translateY(-4px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 2; }
-        .suggested-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        @media (max-width: 1300px) { .hero-grid { grid-template-columns: repeat(4, 1fr); } .search-container { position: relative; left: 0; transform: none; max-width: 300px; margin-left: 20px; } }
-        @media (max-width: 1100px) { .suggested-sidebar { display: none; } }
-        @media (max-width: 992px) { .hero-grid { grid-template-columns: repeat(2, 1fr); } .span-2x2 { grid-column: span 2; grid-row: span 2; } .standard-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } }
-        @media (max-width: 768px) { .sidebar { width: var(--sidebar-collapsed-width); } .sidebar span, .sidebar .logo-text, .sidebar-footer { display: none !important; } .content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); padding: 15px; } .top-bar { padding: 0 10px; } .search-container, .user-actions .action-icon-btn { display: none; } .login-btn { padding: 0 15px; font-size: 14px; } }
-
-        /* BẢNG THÔNG BÁO TÙY CHỈNH & AUTH SIDEBAR */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; }
-        .modal-overlay.show { display: flex; opacity: 1; }
-        .modal-box { background: var(--black-80); border: 1px solid var(--black-60); border-radius: 16px; width: 90%; max-width: 450px; padding: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); transform: translateY(-30px) scale(0.95); transition: transform 0.3s ease; font-family: var(--font-nunito); }
-        .modal-overlay.show .modal-box { transform: translateY(0) scale(1); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--black-60); padding-bottom: 12px; }
-        .modal-header h3 { margin: 0; font-weight: 900; font-size: 20px; color: var(--brand-100); text-transform: uppercase;}
-        .modal-close-btn { background: transparent; border: none; color: var(--white-50); font-size: 20px; cursor: pointer; transition: 0.2s ease; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
-        .modal-close-btn:hover { color: var(--alert-100); background: var(--black-60); transform: scale(1.1); }
-        .modal-body { font-size: 15px; line-height: 1.6; color: var(--white-100); margin-bottom: 24px; font-weight: 700;}
-        .modal-footer { display: flex; justify-content: flex-end; }
-        .modal-ok-btn { background: var(--brand-100); color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; cursor: pointer; transition: 0.2s; }
-        .modal-ok-btn:hover { background: var(--brand-80); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(104, 66, 255, 0.4); }
-
-        .auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--black-60); }
-        .auth-tab { flex: 1; background: transparent; border: none; color: var(--white-50); font-size: 16px; font-weight: 800; padding: 10px; cursor: pointer; transition: 0.2s; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: var(--font-nunito);}
-        .auth-tab.active { color: var(--brand-100); border-bottom: 2px solid var(--brand-100); }
-        .auth-form { display: none; }
-        .auth-form.active { display: block; }
-        .auth-input { width: 100%; background: var(--black-60); border: 1px solid var(--black-50); padding: 12px 15px; border-radius: 8px; color: var(--white-100); font-family: var(--font-nunito); font-weight: 700; margin-bottom: 15px; box-sizing: border-box; outline: none; transition: 0.2s; }
-        .auth-input:focus { border-color: var(--brand-100); background: var(--black-50); }
-        .forgot-pass { display: block; text-align: right; color: var(--brand-60); font-size: 13px; font-weight: 700; margin-top: -5px; margin-bottom: 20px; transition: 0.2s; text-decoration: none;}
-        .forgot-pass:hover { color: var(--brand-100); text-decoration: underline;}
-        .auth-submit-btn { width: 100%; padding: 12px; border-radius: 30px; font-family: var(--font-nunito); font-size: 16px; margin-bottom: 20px; font-weight: 800; border: none; cursor: pointer; color: var(--black-100);}
+        .message { max-width: 70%; padding: 12px 18px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; }
         
-        .auth-sidebar { position: fixed; top: 0; right: -400px; width: 360px; height: 100vh; background: var(--black-90); box-shadow: -5px 0 25px rgba(0,0,0,0.5); z-index: 10000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; font-family: var(--font-nunito); border-left: 1px solid var(--black-60); overflow-y: auto; }
-        .auth-sidebar.show { right: 0; }
-        .auth-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 9999; display: none; opacity: 0; transition: opacity 0.3s; }
-        .auth-backdrop.show { display: block; opacity: 1; }
-        .auth-sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; margin-bottom: 10px; }
-        .auth-sidebar-header h3 { margin: 0; color: var(--white-100); font-weight: 800; font-size: 18px; text-align: center; flex: 1;}
-        .auth-sidebar-body { padding: 0 25px 20px 25px; flex: 1; }
+        /* Tin của khách gửi tới Admin */
+        .msg-received { background: rgba(255, 255, 255, 0.05); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        /* Tin Admin phản hồi */
+        .msg-sent { background: var(--btn-gradient); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3); }
 
-        .profile-avatar-box { width: 80px; height: 80px; background: var(--brand-100); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 0 15px rgba(104, 66, 255, 0.4); overflow: hidden;}
-        .profile-avatar-box img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-username { font-size: 18px; font-weight: 900; color: var(--white-100); text-align: center; margin-bottom: 5px; }
-        .profile-email { font-size: 13px; color: var(--white-30); font-weight: 700; text-align: center; margin-bottom: 20px; }
-        .profile-menu-list { list-style: none; padding: 0; margin: 20px 0; border-top: 1px solid var(--black-60); }
-        .profile-menu-list li { padding: 15px 20px; display: flex; align-items: center; gap: 15px; color: var(--white-50); font-weight: 700; font-size: 15px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--black-80); }
-        .profile-menu-list li i { font-size: 18px; width: 20px; text-align: center; }
-        .profile-menu-list li:hover { background: var(--black-80); color: var(--white-100); }
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .chat-input { flex: 1; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color); border-radius: 50px; padding: 0 25px; color: #fff; font-size: 0.95rem; outline: none; }
+        .chat-input:focus { border-color: var(--neon-secondary); }
+        
+        .send-btn { background: var(--btn-gradient); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .send-btn:hover { transform: scale(1.1); }
+        .send-btn svg { width: 22px; height: 22px; fill: #fff; transform: translateX(2px); }
+
     </style>
-    <script src="https://unpkg.com/@ruffle-rs/ruffle"></script>
 </head>
 <body>
 
-   <aside id="main-sidebar" class="sidebar">
-        <div class="logo-area">
-            <a href="#" class="logo">
-                <svg class="logo-icon" viewBox="0 0 100 100" width="32" height="32">
-                    <rect width="100" height="100" rx="25" fill="var(--brand-100)"/>
-                    <path d="M 23 38 h 6 v -6 h 6 v 6 h 6 v 6 h -6 v 6 h -6 v -6 h -6 z" fill="#fff"/>
-                    <circle cx="63" cy="37" r="4.5" fill="#fff"/>
-                    <circle cx="75" cy="45" r="4.5" fill="#fff"/>
-                    <path d="M 25 65 Q 50 85 75 65" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="transparent"/>
-                </svg>
-                <div class="logo-text">
-                    <span>Kun Game</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="sidebar-scroll">
-            <ul class="menu-list" id="main-menu">
-                <li class="active" id="menu-home">
-                    <i class="fas fa-home"></i> <span>Trang chủ</span>
-                </li>
-                <li id="menu-recent">
-                    <i class="fas fa-clock"></i> <span>Gần đây</span>
-                </li>
-                <li id="menu-new">
-                    <i class="fas fa-star"></i> <span>Mới</span>
-                </li>
-                <li id="menu-trending">
-                    <i class="fas fa-fire"></i> <span>Xu hướng</span>
-                </li>
-                <li id="menu-updated">
-                    <i class="fas fa-sync-alt"></i> <span>Cập nhật</span>
-                </li>
-                <li id="menu-originals">
-                    <i class="fas fa-crown"></i> <span>Originals</span>
-                </li>
-                <li id="menu-multiplayer">
-                    <i class="fas fa-users"></i> <span>Multiplayer</span>
-                </li>
-                <li id="menu-leaderboard">
-                    <i class="fas fa-trophy"></i> <span>Bảng xếp hạng</span>
-                </li>
-            </ul>
-
-            <hr class="divider">
-
-            <ul class="menu-list" id="category-menu">
-                <li data-cat="Bắn súng"><i class="fas fa-crosshairs"></i> <span>Bắn súng</span></li>
-                <li data-cat="Đua xe"><i class="fas fa-car"></i> <span>Đua xe</span></li>
-                <li data-cat="Thể thao"><i class="fas fa-futbol"></i> <span>Thể thao</span></li>
-                <li data-cat="Kinh dị"><i class="fas fa-ghost"></i> <span>Kinh dị</span></li>
-                <li data-cat="Giải đố"><i class="fas fa-puzzle-piece"></i> <span>Giải đố</span></li>
-            </ul>
-        </div> <div class="sidebar-footer">
-            <button class="contact-btn" onclick="showFooterInfo('Liên hệ', 'Mọi thắc mắc hoặc hợp tác, vui lòng gửi email về:hoangvb12072006@gmail.com hoặc nhắn tin qua TikTok/Zalo của tui nhé! 😎')">
-                <i class="fas fa-envelope"></i> Liên hệ
-            </button>
-
-            <div class="language-selector" style="position: relative;">
-                <div id="google_translate_element" style="display: none;"></div>
-                <div onclick="toggleLangMenu()" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <span id="current-lang"><i class="fas fa-globe"></i> Ngôn ngữ</span>
-                    <i class="fas fa-chevron-up"></i>
-                </div>
-
-                <ul id="lang-menu" style="display: none; position: absolute; bottom: 50px; left: 0; width: 100%; background: var(--black-60); border: 1px solid var(--black-40); border-radius: 8px; list-style: none; padding: 5px 0; z-index: 1000; box-shadow: 0 -5px 15px rgba(0,0,0,0.5);">
-                    <li onclick="changeLanguage('vi')" style="padding: 8px 15px; cursor: pointer;">Tiếng Việt</li>
-                    <li onclick="changeLanguage('en')" style="padding: 8px 15px; cursor: pointer;">English</li>
-                    <li onclick="changeLanguage('zh-CN')" style="padding: 8px 15px; cursor: pointer;">简体中文</li>
-                    <li onclick="changeLanguage('ja')" style="padding: 8px 15px; cursor: pointer;">日本語</li>
-                    <li onclick="changeLanguage('ko')" style="padding: 8px 15px; cursor: pointer;">한국어</li>
-                    <li onclick="changeLanguage('fr')" style="padding: 8px 15px; cursor: pointer;">Français</li>
-                </ul>
-            </div>
-
-            <div class="footer-links">
-                <a href="javascript:void(0)" onclick="showFooterInfo('Về chúng tôi', 'Kun Game Center là nền tảng chơi game HTML5 miễn phí, được phát triển bởi Hoàng Kun với mục tiêu mang lại những giây phút giải trí nhanh và vui vẻ cho mọi người.')">Về chúng tôi</a>
-                <a href="javascript:void(0)" onclick="showFooterInfo('Nhà phát triển', 'Nếu bạn là một nhà làm game và muốn đưa game của mình lên Kun Game, hãy liên hệ với đội ngũ của tui qua phần Liên hệ nhé!')">Nhà phát triển</a>
-                <a href="javascript:void(0)" onclick="showFooterInfo('Trang trẻ em', 'Trang web cam kết cung cấp các nội dung lành mạnh, an toàn và phù hợp cho mọi lứa tuổi, đặc biệt là trẻ em.')">Trang trẻ em</a>
-                <a href="javascript:void(0)" onclick="showFooterInfo('Điều khoản', 'Bằng việc sử dụng trang web, bạn đồng ý với các quy định về sử dụng dịch vụ của chúng tôi. Chúc bạn chơi game vui vẻ!')">Điều khoản</a>
-                <a href="javascript:void(0)" onclick="showFooterInfo('Quyền riêng tư', 'Chúng tôi cam kết bảo mật thông tin cá nhân của người dùng và không chia sẻ cho bất kỳ bên thứ ba nào.')">Quyền riêng tư</a>
-            </div>
-
-            <div class="social-icons">
-                <a href="https://tiktok.com/hoangkun12706" target="_blank" title="TikTok">
-                    <i class="fab fa-tiktok"></i>
-                </a>
-                <a href="https://facebook.com/nvh12072006" target="_blank" title="Facebook">
-                    <i class="fab fa-facebook-f"></i>
-                </a>
-                <a href="https://zalo.me/84788265513" target="_blank" title="Zalo">
-                    <i class="fas fa-comment-dots"></i>
-                </a>
-            </div>
-        </div>
-    </aside>
-
-    <main class="content" id="main-content">
-        <header class="top-bar">
-            <div class="search-container">
-                <div class="search-box">
-                    <input type="text" placeholder="Tìm kiếm trò chơi và danh mục">
-                    <div class="search-icon-wrapper">
-                        <i class="fas fa-search"></i>
-                    </div>
-                </div>
-            </div>
-
-        <div class="user-actions">
-    <div class="action-icon-btn notification-btn" onclick="toggleNotifications()" style="position: relative;">
-        <i class="fas fa-bell"></i>
-        <span class="notification-badge" id="noti-badge">1</span>
-
-        <div id="notification-dropdown" class="notification-dropdown">
-            <div class="noti-header">
-                <h4>Thông báo</h4>
-                <span class="mark-read" onclick="markAllRead(event)">Đánh dấu đã đọc</span>
-            </div>
-            <ul class="noti-list">
-                <li class="noti-item unread">
-                    <div class="noti-icon"><i class="fas fa-gift"></i></div>
-                    <div class="noti-content">
-                        <p><strong>Quà tặng tân thủ!</strong> Chào mừng bạn đến với Kun Game. Nhận ngay x2 EXP trong 24h tới.</p>
-                        <span class="noti-time">Vừa xong</span>
-                    </div>
-                </li>
-                <li class="noti-item">
-                    <div class="noti-icon" style="background: var(--warning-100);"><i class="fas fa-star"></i></div>
-                    <div class="noti-content">
-                        <p>Hệ thống vừa cập nhật thêm 17 tựa game mới. Khám phá ngay!</p>
-                        <span class="noti-time">2 giờ trước</span>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="action-icon-btn" onclick="showFooterInfo('Game Yêu Thích', 'Tính năng lưu game yêu thích đang được phát triển. Bạn hãy đăng nhập để sử dụng tính năng này trong thời gian tới nhé! ❤️')">
-        <i class="fas fa-heart"></i>
-    </div>
-
-    <button id="top-login-btn" class="login-btn animated-green-gradient" onclick="openAuthModal()">Đăng nhập / Đăng ký</button>
-
-    <div id="top-user-avatar" class="action-icon-btn user-avatar-btn" style="display: none;" onclick="openProfileSidebar()">
-        <img id="top-avatar-img" src="https://picsum.photos/40/40?random=1" alt="Avatar">
-    </div>
-</div>
-        </header>
-
-        <section id="home-section">
-            
-          <div class="category-slider">
-    <div class="cat-card" style="background: linear-gradient(135deg, #1d5657, #154a6f);" onclick="filterBySlider('Nhiều người chơi')">
-        <div class="cat-text">Chơi cùng bạn bè</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/People%20with%20Bunny%20Ears.png" class="cat-icon" alt="">
-    </div>
-
-    <div class="cat-card" style="background: linear-gradient(135deg, #58522c, #604230);" onclick="filterBySlider('Vui nhộn')">
-        <div class="cat-text">5 phút vui vẻ</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Food%20Drink/Hot%20Beverage.png" class="cat-icon" alt="">
-    </div>
-
-    <div class="cat-card" style="background: linear-gradient(135deg, #154a6f, #191e5d);" onclick="filterBySlider('Giải đố')">
-        <div class="cat-text">Rèn luyện trí não</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Light%20Bulb.png" class="cat-icon" alt="">
-    </div>
-
-    <div class="cat-card" style="background: linear-gradient(135deg, #2e6136, #1d5657);" onclick="filterBySlider('Crazy')">
-        <div class="cat-text">Meme & Bloxy</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Smilies/Grinning%20Squinting%20Face.png" class="cat-icon" alt="">
-    </div>
-
-    <div class="cat-card" style="background: linear-gradient(135deg, #800e13, #640d14);" onclick="filterBySlider('Hành động')">
-        <div class="cat-text">Hành động kịch tính</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Firecracker.png" class="cat-icon" alt="">
-    </div>
-    
-    <div class="cat-card" style="background: linear-gradient(135deg, #3c096c, #5a189a);" onclick="filterBySlider('3D')">
-        <div class="cat-text">Thế giới ảo</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Video%20Game.png" class="cat-icon" alt="">
-    </div>
-
-    <div class="cat-card" style="background: linear-gradient(135deg, #2D5A27, #1E3F1A);" onclick="filterBySlider('Thể thao')">
-        <div class="cat-text">Thể thao 24h</div>
-        <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Soccer%20Ball.png" class="cat-icon" alt="">
-    </div>
-</div>
-
-<h2>Lựa chọn hàng đầu dành cho bạn</h2>
-<div class="hero-grid">
-    <div class="hero-card" onclick="playGame('https://en.gameslol.net/data/ruffle/ruffle-scale.php?g=511', 'House of Wolves')">
-        <div class="badge" style="background: #ffac4a">FLASH</div>
-        <img src="https://www.gameslol.net/thumbs/jeu-511.jpg" style="width: 100%; height: 100%; object-fit: cover;">
-        <div class="game-title-overlay">House of Wolves</div>
+    <div class="sidebar">
+        <div class="sidebar-header">QUẢN TRỊ VIÊN</div>
+        <div class="user-list">
+            <div class="user-item active">
+                <div class="user-avatar">K1</div>
+                <div class="user-info">
+                    <div class="user-name">Khách #8921</div>
+                    <div class="user-preview">hi</div>
+                </div>
+                <div class="unread-badge">1</div>
+            </div>
+            <div class="user-item">
+                <div class="user-avatar">K2</div>
+                <div class="user-info">
+                    <div class="user-name">Khách #7742</div>
+                    <div class="user-preview">Cho mình hỏi lịch up video...</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/moto-x3m/A1000-10', 'Moto X3M')">
-        <div class="badge">TOP 1</div>
-        <img src="https://imgs.crazygames.com/moto-x3m_1x1/20231122033955/moto-x3m_1x1-cover?format=auto&quality=100&width=600">
-        <div class="game-title-overlay">Moto X3M</div>
+
+    <div class="chat-area">
+        <div class="chat-header">
+            <div class="header-avatar">K1</div>
+            <div>
+                <div style="font-weight: 700; font-size: 1.1rem;">Khách #8921</div>
+                <div style="font-size: 0.8rem; color: #10b981;">● Đang truy cập trang chủ</div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chat-box">
+            <div class="message msg-sent">Chào bạn! Mình là Nguyễn Việt Hoàng. Hiện tại bạn đang cần liên hệ hợp tác, booking review phim hay có câu hỏi nào không? Hãy để lại lời nhắn nhé!</div>
+            <div class="message msg-received">hi</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="msg-input" placeholder="Nhập phản hồi cho Khách #8921..." autocomplete="off">
+            <button class="send-btn" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
     </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/8-ball-billiards-classic/A1000-10', '8 Ball Billiards')">
-        <div class="badge" style="background: #4af0a7">POPULAR</div>
-        <img src="https://cdn-media.sforum.vn/storage/app/media/wp-content/uploads/2023/01/8-ball-bool-00.jpg">
-        <div class="game-title-overlay">8 Ball Billiards</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/om-nom-run/A1000-10', 'Om Nom Run')">
-        <div class="badge" style="background: #ffac4a">HOT</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg">
-        <div class="game-title-overlay">Om Nom Run</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/tower-crash-3d/A1000-10', 'Tower Crash 3D')">
-        <div class="badge" style="background: #28c7df; color: #fff">3D</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/TowerCrash3dTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Tower Crash 3D</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/gold-mine/A1000-10', 'Gold Mine')">
-        <div class="badge" style="background: #faff9c; color: #000">CLASSIC</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/GoldMineTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Gold Mine (Đào Vàng)</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/endless-truck/A1000-10', 'Endless Truck')">
-        <div class="badge" style="background: #ff2f0f; color: #fff">RACING</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/EndlessTruckTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Endless Truck</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/solitaire-klondike/A1000-10', 'Solitaire Klondike')">
-        <div class="badge" style="background: #666a7f; color: #fff">CARDS</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/SolitaireKlondikeTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Solitaire Klondike</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/3d-free-kick/A1000-10', '3D Free Kick')">
-        <div class="badge" style="background: #64f17e; color: #000">FOOTBALL</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/3dFreeKickTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">3D Free Kick</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/garden-bloom/A1000-10', 'Garden Bloom')">
-        <div class="badge" style="background: #f59ebe; color: #000">PUZZLE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/GardenBloomTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Garden Bloom</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/who-dies-last/A1000-10', 'Who Dies Last')">
-        <div class="badge" style="background: #e70d5c; color: #fff">TRENDY</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/WhoDiesLastTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Who Dies Last</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/fun-race-3d/A1000-10', 'Fun Race 3D')">
-        <div class="badge" style="background: #a48eff; color: #fff">PARKOUR</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/FunRace3dTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Fun Race 3D</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/go-escape/A1000-10', 'Go Escape')">
-        <div class="badge" style="background: #f1c40f">NEW</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/GoEscapeTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Go Escape</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/color-water-sort-3d/A1000-10', 'Color Water Sort 3D')">
-        <div class="badge" style="background: #3498db">LOGIC</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/ColorWaterSort3dTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Color Water Sort 3D</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/speed-master/A1000-10', 'Speed Master')">
-        <div class="badge" style="background: #e67e22">SPEED</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/SpeedMasterTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Speed Master</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/guess-their-answer/A1000-10', 'Guess Their Answer')">
-        <div class="badge" style="background: #9b59b6">QUIZ</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/GuessTheirAnswerTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Guess Their Answer</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/neon-rider/A1000-10', 'Neon Rider')">
-        <div class="badge" style="background: #00ffcc">NEON</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/NeonRiderTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Neon Rider</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/peet-sneak/A1000-10', 'Peet Sneak')">
-        <div class="badge" style="background: #2c3e50; color: #fff">SNEAK</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/PeetSneakTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Peet Sneak</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/cowboy-swing/A1000-10', 'Cowboy Swing')">
-        <div class="badge" style="background: #d35400">SWING</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/CowboySwingTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Cowboy Swing</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/super-thrower/A1000-10', 'Super Thrower')">
-        <div class="badge" style="background: #c0392b">ACTION</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/SuperThrowerTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Super Thrower</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/crazy-hen-level/A1000-10', 'Crazy Hen')">
-        <div class="badge" style="background: #f39c12">CRAZY</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/CrazyHenLevelTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Crazy Hen</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/cubito/A1000-10', 'Cubito')">
-        <div class="badge" style="background: #16a085">CUBE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/CubitoTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Cubito</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/stair-race-3d/A1000-10', 'Stair Race 3D')">
-        <div class="badge" style="background: #27ae60">RACE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/StairRace3dTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Stair Race 3D</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/crowd-run-3d/A1000-10', 'Crowd Run 3D')">
-        <div class="badge" style="background: #2980b9">CROWD</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/_CrowdRun3dTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Crowd Run 3D</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/frankenstein-go/A1000-10', 'Frankenstein Go')">
-        <div class="badge" style="background: #44bd32">ADVENTURE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/FrankensteinGoTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Frankenstein Go</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/bus-parking-3d/A1000-10', 'Bus Parking 3D')">
-        <div class="badge" style="background: #7f8c8d">PARKING</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/BusParking3dTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Bus Parking 3D</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/adventure-drivers/A1000-10', 'Adventure Drivers')">
-        <div class="badge" style="background: #e67e22">DRIVING</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/AdventureDriversTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Adventure Drivers</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/3d-chess/A1000-10', '3D Chess')">
-        <div class="badge" style="background: #34495e; color: #fff">CHESS</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/3dChessTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">3D Chess</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/soccer-champ-2018/A1000-10', 'Soccer Champ')">
-        <div class="badge" style="background: #27ae60">SOCCER</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/SoccerChamp2018Teaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Soccer Champ 2018</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/surfer-archers/A1000-10', 'Surfer Archers')">
-        <div class="badge" style="background: #2980b9">ARCHERY</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/SurferArchersTeaserB.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Surfer Archers</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/the-little-giant/A1000-10', 'The Little Giant')">
-        <div class="badge" style="background: #8e44ad">GIANT</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/TheLittleGiantTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">The Little Giant</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/matching-card-heroes/A1000-10', 'Card Heroes')">
-        <div class="badge" style="background: #c0392b">CARDS</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/MatchingCardHeroesTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Matching Card Heroes</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/allez-hop/A1000-10', 'Allez Hop')">
-        <div class="badge" style="background: #f39c12">ARCADE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/AllezHopTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Allez Hop</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/soccer-heads/A1000-10', 'Soccer Heads')">
-        <div class="badge" style="background: #16a085">SPORTS</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/SoccerHeadsTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Soccer Heads</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/vikings-vs-monsters/A1000-10', 'Vikings')">
-        <div class="badge" style="background: #d35400">ACTION</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/VikingsVsMonstersTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Vikings vs Monsters</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/winter-adventures/A1000-10', 'Winter Adv')">
-        <div class="badge" style="background: #3498db">WINTER</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/WinterAdventuresTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Winter Adventures</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/timber-guy/A1000-10', 'Timber Guy')">
-        <div class="badge" style="background: #795548">TIMBER</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/TimberGuyTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Timber Guy</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/taptastic-monsters/A1000-10', 'Taptastic')">
-        <div class="badge" style="background: #ff4757">CLICKER</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/TaptasticMonstersTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Taptastic Monsters</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/bravebull-pirates/A1000-10', 'Bravebull')">
-        <div class="badge" style="background: #2f3542">PIRATE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/BravebullPiratesTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Bravebull Pirates</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/knightower/A1000-10', 'Knightower')">
-        <div class="badge" style="background: #57606f">KNIGHT</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/KnightowerTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Knightower</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/dragons-trail/A1000-10', 'Dragon Trail')">
-        <div class="badge" style="background: #ffa502">DRAGON</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/DragonsTrailTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Dragon's Trail</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/tiny-rifles/A1000-10', 'Tiny Rifles')">
-        <div class="badge" style="background: #2ed573">WAR</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/TinyRifles_Teaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">Tiny Rifles</div>
-    </div>
-    <div class="hero-card" onclick="playGame('https://play.famobi.com/wrapper/ufo-run/A1000-10', 'UFO Run')">
-        <div class="badge" style="background: #1e90ff">SPACE</div>
-        <img src="https://img.cdn.famobi.com/portal/html5games/images/tmp/UfoRunTeaser.jpg?v=0.2-6b1f34f6">
-        <div class="game-title-overlay">UFO Run</div>
-    </div>
-</div>
-            
-        </section>
 
-     <section id="player-section" style="display: none;">
-            <div class="player-layout">
-                
-                <div class="left-column">
-                    <div class="main-game-area">
-                        <div class="iframe-container">
-                            <div id="game-loader" class="game-loader">
-                                <svg class="loader-logo-svg" viewBox="0 0 100 100" width="64" height="64">
-                                    <rect width="100" height="100" rx="25" fill="var(--brand-100)"/>
-                                    <path d="M 23 38 h 6 v -6 h 6 v 6 h 6 v 6 h -6 v 6 h -6 v -6 h -6 z" fill="#fff"/>
-                                    <circle cx="63" cy="37" r="4.5" fill="#fff"/>
-                                    <circle cx="75" cy="45" r="4.5" fill="#fff"/>
-                                    <path d="M 25 65 Q 50 85 75 65" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="transparent"/>
-                                </svg>
-                            </div>
-                            
-                            <iframe id="gameFrame" src="" allowfullscreen="true" scrolling="no" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock" allow="autoplay; fullscreen; focus-without-user-activation *;" style="border: none; width: 100%; height: 100%;" onload="hideLoader()"></iframe>
-                        </div>
-                        
-                        <div class="game-toolbar">
-                            <div class="game-title">
-                                <img src="" id="toolbarIcon" style="width: 32px; height: 32px; border-radius: 8px; display: none;">
-                                <span id="currentGameTitle">Đang tải...</span>
-                            </div>
-                            <div class="game-actions">
-                                <button class="action-btn" id="btn-like" onclick="toggleLike()"><i class="fas fa-thumbs-up"></i> <span id="like-count">130N</span></button>
-                                <button class="action-icon-btn" id="btn-dislike" onclick="toggleDislike()"><i class="fas fa-thumbs-down"></i></button>
-                                <button class="action-icon-btn" id="btn-heart" onclick="toggleHeart()"><i class="fas fa-heart"></i></button>
-                                <button class="action-icon-btn" onclick="shareGame()"><i class="fas fa-share-alt" title="Chia sẻ link"></i></button>
-                                <button class="action-icon-btn" onclick="toggleFullscreen()"><i class="fas fa-expand" title="Phóng to toàn màn hình"></i></button>
-                                <button class="action-icon-btn" onclick="goHome()" style="background: var(--alert-100);" title="Thoát Game"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="game-details-container">
-                        
-                        <div class="promo-banner">
-                            <div class="promo-content">
-                                <img src="https://picsum.photos/40/40?random=100" style="border-radius: 8px; width: 32px; height: 32px;">
-                                <span>Đăng nhập để lưu tiến trình của bạn!</span>
-                            </div>
-                            <i class="fas fa-arrow-right" style="color: var(--white-100);"></i>
-                        </div>
-
-                        <div class="breadcrumbs">
-                            Trò Chơi > Hành Động > Phiêu Lưu > <span id="breadcrumbTitleDesc">Tên Game</span>
-                        </div>
-
-                        <h1 class="desc-title" id="descTitle">Tên Game</h1>
-                        <button class="share-btn-large"><i class="fas fa-share"></i> Chia sẻ</button>
-
-                        <div class="metadata-grid">
-                            <div class="meta-row">
-                                <span class="meta-label">Nhà phát triển:</span>
-                                <span class="meta-value purple-text">Hoangkun Studio</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Xếp hạng:</span>
-                                <span class="meta-value">9.2 <span class="meta-sub">(358.912 phiếu bầu)</span></span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Phát hành:</span>
-                                <span class="meta-value">tháng 3 năm 2024</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Cập nhật mới:</span>
-                                <span class="meta-value">hôm nay</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Công nghệ:</span>
-                                <span class="meta-value">HTML5 (Hỗ trợ tốt mọi thiết bị)</span>
-                            </div>
-                            <div class="meta-row">
-                                <span class="meta-label">Nền tảng:</span>
-                                <span class="meta-value">Trình duyệt (máy tính, điện thoại, máy tính bảng)</span>
-                            </div>
-                        </div>
-
-                        <div class="tags-container">
-                            <div class="tag-chip">.io <span class="tag-count">120</span></div>
-                            <div class="tag-chip">Tăng trưởng <span class="tag-count">93</span></div>
-                            <div class="tag-chip">Mobile <span class="tag-count">1.900</span></div>
-                            <div class="tag-chip">Từ-Trên-Xuống <span class="tag-count">235</span></div>
-                            <div class="tag-chip">Chiến trường <span class="tag-count">495</span></div>
-                            <div class="tag-chip">Nhiều người chơi <span class="tag-count">332</span></div>
-                            <div class="tag-chip">Chuột <span class="tag-count">1.616</span></div>
-                        </div>
-
-                        <div class="game-intro-card">
-                            <div class="game-intro-poster">
-                                <img id="posterImg" src="" style="width:100%; height:100%; object-fit:cover;">
-                            </div>
-
-                            <div class="game-intro-info">
-                                <div class="breadcrumbs">Trò Chơi > <span id="categoryName">Hành Động</span> > IO</div>
-                                <h1 class="desc-title" id="mainGameTitle">Tên Game</h1>
-                                <p class="game-description-text" id="gameDescText" style="margin-bottom: 20px; color: var(--white-50);">
-                                    Mô tả đang tải...
-                                </p>
-
-                                <div class="metadata-grid">
-                                    <span class="meta-label">Nhà phát triển:</span> 
-                                    <span class="meta-value purple-text" id="devName">Đang cập nhật</span>
-                                    <span class="meta-label">Công nghệ:</span> 
-                                    <span class="meta-value">HTML5</span>
-                                </div>
-
-                                <div class="tags-container" id="gameTags" style="margin-top: 20px;">
-                                </div>
-
-                                <button class="play-now-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                                    BẮT ĐẦU CHƠI NGAY
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="return-to-game-wrapper">
-                            <button class="btn-return-game" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-                                <i class="fas fa-arrow-up"></i> Quay lại trò chơi
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="suggested-sidebar" id="suggested-games-container"></div>
-
-            </div>
-        </section>
-    
-    </main>
-
-                   <div id="profile-backdrop" class="auth-backdrop" onclick="closeProfileSidebar()"></div>
-<div id="right-profile-sidebar" class="auth-sidebar">
-    <div class="auth-sidebar-header">
-        <h3>Hồ sơ của bạn</h3>
-        <button class="modal-close-btn" onclick="closeProfileSidebar()"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="auth-sidebar-body" style="padding: 0;">
-        <div class="profile-avatar-box">
-            <img id="side-avatar" src="https://picsum.photos/80/80" alt="Avatar">
-        </div>
-        <div class="profile-username" id="side-username">@Username</div>
-        <div class="profile-email" id="side-email">email@domain.com</div>
-
-        <ul class="profile-menu-list">
-            <li><i class="far fa-bell"></i> Tùy chọn thông báo</li>
-            <li><i class="fas fa-shield-alt"></i> Tùy chọn quyền riêng tư</li>
-            <li id="change-pass-btn" onclick="document.getElementById('change-pass-area').style.display='block'"><i class="fas fa-key"></i> Đổi mật khẩu</li>
-            <li onclick="logout()" style="color: var(--alert-100);"><i class="fas fa-sign-out-alt"></i> Đăng xuất</li>
-        </ul>
-
-        <div id="change-pass-area" style="display: none; padding: 0 20px;">
-            <input type="password" id="new-password" placeholder="Nhập mật khẩu mới" class="auth-input">
-            <button class="auth-submit-btn animated-green-gradient" onclick="changeUserPassword()">Xác nhận đổi</button>
-        </div>
-    </div>
-</div>
-                    
-  <script>
-   const gameData = {
-    // --- 11 GAME GỐC ---
-    'Moto X3M': { img: 'https://imgs.crazygames.com/moto-x3m_1x1/20231122033955/moto-x3m_1x1-cover?format=auto&quality=100&width=600', desc: 'Đua xe mô tô vượt địa hình đầy thử thách và bùng nổ.', dev: 'MadPuffers', tags: ['Đua xe', 'Mạo hiểm'] },
-    '8 Ball Billiards': { img: 'https://cdn-media.sforum.vn/storage/app/media/wp-content/uploads/2023/01/8-ball-bool-00.jpg', desc: 'Trò chơi bida lỗ cổ điển với độ chính xác cao.', dev: 'Famobi', tags: ['Thể thao', 'Logic'] },
-    'Om Nom Run': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/OmNomRunTeaser.jpg', desc: 'Chạy đua cùng Om Nom qua các đường phố đầy chướng ngại vật.', dev: 'ZeptoLab', tags: ['Chạy', 'Vui nhộn'] },
-    'Tower Crash 3D': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/TowerCrash3dTeaser.jpg?v=0.2-6b1f34f6', desc: 'Phá hủy các tòa tháp bằng những quả bóng màu sắc.', dev: 'Famobi', tags: ['3D', 'Giải đố'] },
-    'Gold Mine': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/GoldMineTeaser.jpg?v=0.2-6b1f34f6', desc: 'Trở thành thợ đào vàng chuyên nghiệp.', dev: 'Famobi', tags: ['Cổ điển', 'Kỹ năng'] },
-    'Endless Truck': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/EndlessTruckTeaser.jpg?v=0.2-6b1f34f6', desc: 'Lái xe tải quái vật vượt qua các đoạn đường bất tận.', dev: 'Famobi', tags: ['Đua xe', 'Nâng cấp'] },
-    'Solitaire Klondike': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/SolitaireKlondikeTeaser.jpg?v=0.2-6b1f34f6', desc: 'Trò chơi bài Solitaire kinh điển trên máy tính.', dev: 'Famobi', tags: ['Bài', 'Trí tuệ'] },
-    '3D Free Kick': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/3dFreeKickTeaser.jpg?v=0.2-6b1f34f6', desc: 'Sút phạt trực tiếp và ghi bàn trong không gian 3D.', dev: 'Famobi', tags: ['Bóng đá', 'Thể thao'] },
-    'Garden Bloom': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/GardenBloomTeaser.jpg?v=0.2-6b1f34f6', desc: 'Ghép các loài hoa giống nhau trong khu vườn rực rỡ.', dev: 'Famobi', tags: ['Giải đố', 'Match-3'] },
-    'Who Dies Last': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/WhoDiesLastTeaser.jpg?v=0.2-6b1f34f6', desc: 'Dự đoán ai sẽ là người trụ lại cuối cùng.', dev: 'Famobi', tags: ['Trendy', 'Vui nhộn'] },
-    'Fun Race 3D': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/FunRace3dTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đua parkour vượt chướng ngại vật cùng nhiều người chơi.', dev: 'Famobi', tags: ['Parkour', '3D'] },
-
-    // --- 14 GAME CỦA LẦN TỔNG TRƯỚC ---
-    'Go Escape': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/GoEscapeTeaser.jpg?v=0.2-6b1f34f6', desc: 'Vượt qua mọi rào cản để tìm đường thoát thân.', dev: 'Famobi', tags: ['Kỹ năng', 'Mạo hiểm'] },
-    'Color Water Sort 3D': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/ColorWaterSort3dTeaser.jpg?v=0.2-6b1f34f6', desc: 'Sắp xếp nước màu vào ống nghiệm chuẩn xác.', dev: 'Famobi', tags: ['Giải đố', '3D'] },
-    'Speed Master': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/SpeedMasterTeaser.jpg?v=0.2-6b1f34f6', desc: 'Trở thành bậc thầy tốc độ trên đường đua.', dev: 'Famobi', tags: ['Đua xe', 'Tốc độ'] },
-    'Guess Their Answer': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/GuessTheirAnswerTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đoán câu trả lời phổ biến nhất để giành chiến thắng.', dev: 'Famobi', tags: ['Quiz', 'Trí tuệ'] },
-    'Neon Rider': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/NeonRiderTeaser.jpg?v=0.2-6b1f34f6', desc: 'Lái xe trong thế giới Neon rực rỡ.', dev: 'Famobi', tags: ['Neon', 'Kỹ năng'] },
-    'Peet Sneak': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/PeetSneakTeaser.jpg?v=0.2-6b1f34f6', desc: 'Hành động lén lút để vượt qua lính gác.', dev: 'Famobi', tags: ['Hành động', 'Lén lút'] },
-    'Cowboy Swing': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/CowboySwingTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đu dây như một chàng cao bồi thực thụ.', dev: 'Famobi', tags: ['Vui nhộn', 'Kỹ năng'] },
-    'Super Thrower': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/SuperThrowerTeaser.jpg?v=0.2-6b1f34f6', desc: 'Ném mọi thứ để đánh bại kẻ thù.', dev: 'Famobi', tags: ['Hành động', 'Vật lý'] },
-    'Crazy Hen': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/CrazyHenLevelTeaser.jpg?v=0.2-6b1f34f6', desc: 'Giúp chú gà điên vượt qua các thử thách.', dev: 'Famobi', tags: ['Vui nhộn', 'Crazy'] },
-    'Cubito': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/CubitoTeaser.jpg?v=0.2-6b1f34f6', desc: 'Thử thách khối lập phương đầy màu sắc.', dev: 'Famobi', tags: ['Giải đố', '3D'] },
-    'Stair Race 3D': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/StairRace3dTeaser.jpg?v=0.2-6b1f34f6', desc: 'Xây cầu thang và đua về đích nhanh nhất.', dev: 'Famobi', tags: ['Đua xe', '3D'] },
-    'Crowd Run 3D': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/_CrowdRun3dTeaser.jpg?v=0.2-6b1f34f6', desc: 'Tập hợp đám đông và chạy về đích.', dev: 'Famobi', tags: ['Vui nhộn', 'Chạy'] },
-    'Frankenstein Go': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/FrankensteinGoTeaser.jpg?v=0.2-6b1f34f6', desc: 'Giúp Frankenstein vượt qua các câu đố mạo hiểm.', dev: 'Famobi', tags: ['Phiêu lưu', 'Giải đố'] },
-    'Bus Parking 3D': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/BusParking3dTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đỗ xe buýt chuẩn xác trong không gian 3D.', dev: 'Famobi', tags: ['Đỗ xe', '3D'] },
-
-    // --- 17 GAME MỚI NHẤT VỪA GỬI ---
-    'Adventure Drivers': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/AdventureDriversTeaser.jpg?v=0.2-6b1f34f6', desc: 'Cuộc đua xe mạo hiểm đầy kịch tính.', dev: 'Famobi', tags: ['Đua xe', 'Action'] },
-    '3D Chess': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/3dChessTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đấu trí cờ vua trong môi trường 3D chân thực.', dev: 'Famobi', tags: ['Trí tuệ', 'Cờ vua'] },
-    'Soccer Champ 2018': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/SoccerChamp2018Teaser.jpg?v=0.2-6b1f34f6', desc: 'Trở thành nhà vô địch bóng đá.', dev: 'Famobi', tags: ['Thể thao', 'Bóng đá'] },
-    'Surfer Archers': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/SurferArchersTeaserB.jpg?v=0.2-6b1f34f6', desc: 'Cung thủ lướt sóng tiêu diệt kẻ thù.', dev: 'Famobi', tags: ['Hành động', 'Kỹ năng'] },
-    'The Little Giant': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/TheLittleGiantTeaser.jpg?v=0.2-6b1f34f6', desc: 'Giúp người khổng lồ nhỏ bé vượt qua thử thách.', dev: 'Famobi', tags: ['Phiêu lưu', 'Nhảy'] },
-    'Matching Card Heroes': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/MatchingCardHeroesTeaser.jpg?v=0.2-6b1f34f6', desc: 'Lật bài tìm cặp anh hùng giống nhau.', dev: 'Famobi', tags: ['Trí nhớ', 'Anh hùng'] },
-    'Allez Hop': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/AllezHopTeaser.jpg?v=0.2-6b1f34f6', desc: 'Game xiếc thú tung hứng vui nhộn.', dev: 'Famobi', tags: ['Vui nhộn', 'Arcade'] },
-    'Soccer Heads': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/SoccerHeadsTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đá banh đầu to cực kỳ hài hước.', dev: 'Famobi', tags: ['Bóng đá', 'Vui nhộn'] },
-    'Vikings vs Monsters': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/VikingsVsMonstersTeaser.jpg?v=0.2-6b1f34f6', desc: 'Chiến binh Viking chống lại quái vật hung ác.', dev: 'Famobi', tags: ['Chiến đấu', 'Viking'] },
-    'Winter Adventures': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/WinterAdventuresTeaser.jpg?v=0.2-6b1f34f6', desc: 'Phiêu lưu trong thế giới tuyết trắng.', dev: 'Famobi', tags: ['Phiêu lưu', 'Mùa đông'] },
-    'Timber Guy': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/TimberGuyTeaser.jpg?v=0.2-6b1f34f6', desc: 'Đốn củi thật nhanh và tránh các cành cây.', dev: 'Famobi', tags: ['Kỹ năng', 'Tốc độ'] },
-    'Taptastic Monsters': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/TaptasticMonstersTeaser.jpg?v=0.2-6b1f34f6', desc: 'Chạm liên tục để tiêu diệt quái vật.', dev: 'Famobi', tags: ['Clicker', 'Quái vật'] },
-    'Bravebull Pirates': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/BravebullPiratesTeaser.jpg?v=0.2-6b1f34f6', desc: 'Chú bò tót đi tìm kho báu cướp biển.', dev: 'Famobi', tags: ['Hành động', 'Cướp biển'] },
-    'Knightower': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/KnightowerTeaser.jpg?v=0.2-6b1f34f6', desc: 'Leo tháp và chiến đấu như một hiệp sĩ.', dev: 'Famobi', tags: ['Hành động', 'Leo tháp'] },
-    'Dragon\'s Trail': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/DragonsTrailTeaser.jpg?v=0.2-6b1f34f6', desc: 'Theo dấu chân rồng trong hành trình huyền thoại.', dev: 'Famobi', tags: ['Phiêu lưu', 'Rồng'] },
-    'Tiny Rifles': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/TinyRifles_Teaser.jpg?v=0.2-6b1f34f6', desc: 'Chỉ huy đội quân tí hon trong cuộc chiến.', dev: 'Famobi', tags: ['Chiến thuật', 'Bắn súng'] },
-    'UFO Run': { img: 'https://img.cdn.famobi.com/portal/html5games/images/tmp/UfoRunTeaser.jpg?v=0.2-6b1f34f6', desc: 'Điều khiển đĩa bay UFO vượt qua các hành tinh.', dev: 'Famobi', tags: ['Không gian', 'Bay'] },
-    'House of Wolves': { img: 'https://www.gameslol.net/thumbs/jeu-511.jpg', desc: 'Lãnh đạo đội quân của bạn, xây dựng đế chế và bảo vệ lãnh thổ trong trò chơi chiến thuật thời gian thực (RTS) kinh điển này.', dev: 'Louissi', tags: ['Chiến thuật', 'Hành động', 'Flash'] }
-};
-
-    // 2. XỬ LÝ CHUYỂN TRANG & URL (Hashtag)
-    window.addEventListener('DOMContentLoaded', checkUrlState);
-    window.addEventListener('hashchange', checkUrlState);
-
-    function checkUrlState() {
-        const hash = window.location.hash;
-        if (hash.startsWith('#play&')) {
-            const params = new URLSearchParams(hash.replace('#play&', ''));
-            const url = decodeURIComponent(params.get('url'));
-            const title = decodeURIComponent(params.get('title'));
-            showGameInterface(url, title);
-        } else {
-            showHomeInterface();
-        }
-    }
-
-    function playGame(url, title) {
-        const safeUrl = encodeURIComponent(url);
-        const safeTitle = encodeURIComponent(title);
-        window.location.hash = `play&url=${safeUrl}&title=${safeTitle}`;
-    }
-
-    function goHome() {
-        window.location.hash = ''; 
-    }
-
-    function showGameInterface(url, title) {
-        // Hiện Loader
-        const loader = document.getElementById('game-loader');
-        if(loader) { loader.style.opacity = '1'; loader.style.display = 'flex'; }
-
-        // Mở rộng giao diện
-        document.getElementById('main-sidebar').classList.add('collapsed');
-        document.getElementById('main-content').classList.add('expanded');
-        document.getElementById('home-section').style.display = 'none';
-        document.getElementById('player-section').style.display = 'block';
-
-        // Gán link cho Iframe
-        document.getElementById('gameFrame').src = url;
-
-        // Cập nhật thông tin tiêu đề
-        document.getElementById('currentGameTitle').innerText = title;
-        document.getElementById('mainGameTitle').innerText = title;
-        document.getElementById('descTitle').innerText = title;
-        document.getElementById('breadcrumbTitleDesc').innerText = title;
-
-        // Lấy dữ liệu mô tả từ gameData
-        const info = gameData[title] || { 
-            img: 'https://picsum.photos/300/400', 
-            desc: 'Trò chơi hấp dẫn trên Kun Game Center. Hãy trải nghiệm ngay!', 
-            dev: 'Famobi',
-            tags: ['Game', 'Hot']
-        };
-
-        // Cập nhật ảnh và mô tả bên dưới
-        document.getElementById('posterImg').src = info.img;
-        const toolbarIcon = document.getElementById('toolbarIcon');
-        if(toolbarIcon) { toolbarIcon.src = info.img; toolbarIcon.style.display = 'block'; }
-        document.getElementById('gameDescText').innerText = info.desc;
-        document.getElementById('devName').innerText = info.dev;
-
-        // Xử lý Tags
-        const tagBox = document.getElementById('gameTags');
-        if(tagBox) {
-            tagBox.innerHTML = '';
-            info.tags.forEach(t => {
-                tagBox.innerHTML += `<div class="tag-chip">${t}</div>`;
-            });
-        }
-        window.scrollTo(0, 0);
-    }
-
-    function showHomeInterface() {
-        document.getElementById('main-sidebar').classList.remove('collapsed');
-        document.getElementById('main-content').classList.remove('expanded');
-        document.getElementById('home-section').style.display = 'block';
-        document.getElementById('player-section').style.display = 'none';
-        document.getElementById('gameFrame').src = '';
-    }
-
-    function hideLoader() {
-        const loader = document.getElementById('game-loader');
-        if(loader) {
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.display = 'none'; }, 500);
-        }
-    }
-
-    // 3. CÁC CHỨC NĂNG TƯƠNG TÁC (LIKE, TIM, THU PHÓNG)
-    let isLiked = false, isDisliked = false, isHearted = false;
-
-    function toggleLike() {
-        const btn = document.getElementById('btn-like');
-        const count = document.getElementById('like-count');
-        isLiked = !isLiked;
-        btn.style.color = isLiked ? "var(--brand-100)" : "";
-        count.innerText = isLiked ? "131N" : "130N";
-        if (isLiked && isDisliked) toggleDislike();
-    }
-
-    function toggleDislike() {
-        const btn = document.getElementById('btn-dislike');
-        isDisliked = !isDisliked;
-        btn.style.color = isDisliked ? "var(--alert-100)" : "";
-        if (isDisliked && isLiked) toggleLike();
-    }
-
-    function toggleHeart() {
-        const btn = document.getElementById('btn-heart');
-        isHearted = !isHearted;
-        btn.style.color = isHearted ? "var(--alert-100)" : "";
-        btn.style.transform = isHearted ? "scale(1.2)" : "scale(1)";
-    }
-
-    function shareGame() {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-            alert("✅ Đã sao chép link game!");
-        });
-    }
-
-    function toggleFullscreen() {
-        const gameContainer = document.querySelector('.iframe-container');
-        if (!document.fullscreenElement) {
-            if (gameContainer.requestFullscreen) {
-                gameContainer.requestFullscreen();
-            } else if (gameContainer.webkitRequestFullscreen) {
-                gameContainer.webkitRequestFullscreen();
-            } else if (gameContainer.msRequestFullscreen) {
-                gameContainer.msRequestFullscreen();
-            }
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-    }
-</script>
-
-                    <script>
-                        // Hàm hiển thị Dropdown Thông Báo
-function toggleNotifications() {
-    document.getElementById('notification-dropdown').classList.toggle('show');
-}
-
-// Hàm đánh dấu đã đọc thông báo
-function markAllRead(event) {
-    event.stopPropagation(); // Tránh click làm đóng luôn menu
-    document.querySelectorAll('.noti-item.unread').forEach(item => {
-        item.classList.remove('unread');
-    });
-    const badge = document.getElementById('noti-badge');
-    if(badge) badge.style.display = 'none';
-}
-
-// Đóng dropdown khi click ra khoảng trống bên ngoài
-window.addEventListener('click', (e) => {
-    if (!e.target.closest('.notification-btn')) {
-        const dropdown = document.getElementById('notification-dropdown');
-        if (dropdown && dropdown.classList.contains('show')) dropdown.classList.remove('show');
-    }
-});
-                        
-document.addEventListener('DOMContentLoaded', () => {
-    const menuItems = document.querySelectorAll('.menu-list li');
-    const gameCards = document.querySelectorAll('.hero-card');
-    const sectionTitle = document.querySelector('h2');
-
-    menuItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // 1. Đổi hiệu ứng Active (màu tím) cho menu
-            menuItems.forEach(li => li.classList.remove('active'));
-            this.classList.add('active');
-
-            // 2. Lấy tên mục vừa nhấn
-            const category = this.querySelector('span').innerText;
-
-            // 3. Xử lý Lọc Game
-            if (category === "Trang chủ") {
-                // Hiện tất cả game
-                gameCards.forEach(card => card.style.display = 'block');
-                sectionTitle.innerText = "Lựa chọn hàng đầu dành cho bạn";
-            } else {
-                // Đổi tiêu đề cho đúng mục
-                sectionTitle.innerText = `Trò chơi: ${category}`;
-                
-                gameCards.forEach(card => {
-                    const title = card.querySelector('.game-title-overlay').innerText;
-                    const info = gameData[title];
-
-                    // Kiểm tra xem game có chứa Tag trùng với tên Menu không
-                    if (info && info.tags.includes(category)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            }
-
-            // 4. Cuộn lên đầu cho mượt
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    });
-});
-
-                        // Hàm mở thông báo đẹp
-function showFooterInfo(title, content) {
-    document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-content').innerText = content;
-    document.getElementById('custom-modal').classList.add('show');
-}
-
-// Hàm đóng thông báo
-function closeModal() {
-    document.getElementById('custom-modal').classList.remove('show');
-}
-
-// Bấm ra ngoài rìa đen thì tự động đóng bảng
-document.getElementById('custom-modal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeModal();
-    }
-});
-                        
-</script>
-
-  <script>
-// 1. Khởi tạo Google Translate (Ẩn thanh công cụ mặc định cho đẹp)
-function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-        pageLanguage: 'vi',
-        includedLanguages: 'vi,en,zh-CN,ja,ko,fr',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-    }, 'google_translate_element');
-}
-
-// 2. Hàm mở/đóng menu chọn tiếng
-function toggleLangMenu() {
-    const menu = document.getElementById('lang-menu');
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
-
-// 3. Hàm kích hoạt dịch khi chọn ngôn ngữ
-function changeLanguage(langCode) {
-    const select = document.querySelector('.goog-te-combo');
-    if (select) {
-        select.value = langCode;
-        select.dispatchEvent(new Event('change'));
-        
-        // Cập nhật chữ hiển thị trên nút
-        const langNames = {'vi':'Tiếng Việt', 'en':'English', 'zh-CN':'中文', 'ja':'日本語', 'ko':'한국어', 'fr':'Français'};
-        document.getElementById('current-lang').innerText = langNames[langCode];
-        toggleLangMenu(); // Đóng menu
-    }
-}
-
-// Đóng menu nếu click ra ngoài
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.language-selector')) {
-        document.getElementById('lang-menu').style.display = 'none';
-    }
-});
- </script>   
-
-                    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
-<div id="custom-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="modal-title">Tiêu đề</h3>
-                <button class="modal-close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <p id="modal-content">Nội dung thông báo ở đây...</p>
-            </div>
-            <div class="modal-footer">
-                <button class="modal-ok-btn" onclick="closeModal()">Đã hiểu</button>
-            </div>
-        </div>
-    </div>
-                   
-  <div id="auth-backdrop" class="auth-backdrop" onclick="closeAuthModal()"></div>
-<div id="auth-modal" class="auth-sidebar">
-    <div class="auth-sidebar-header">
-        <h3>Đăng nhập hoặc đăng ký</h3>
-        <button class="modal-close-btn" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
-    </div>
-
-    <div class="auth-sidebar-body">
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
-            <button onclick="loginWithGoogle()" style="width: 100%; border-radius: 30px; display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--black-100); background: #fff; border: none; padding: 12px; cursor: pointer; font-weight: 800; font-family: var(--font-nunito); font-size: 15px; transition: 0.2s;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style="width: 18px; height: 18px;"> Đăng nhập bằng Google
-            </button>
-            <button style="width: 100%; border-radius: 30px; display: flex; justify-content: center; align-items: center; gap: 10px; color: white; background: #1877f2; border: none; padding: 12px; cursor: pointer; font-weight: 800; font-family: var(--font-nunito); font-size: 15px; transition: 0.2s;">
-                <i class="fab fa-facebook-f" style="font-size: 18px;"></i> Tiếp tục với Facebook
-            </button>
-        </div>
-
-        <div style="display: flex; align-items: center; text-align: center; color: var(--white-40); font-size: 12px; font-weight: 700; margin-bottom: 25px;">
-            <div style="flex: 1; height: 1px; background: var(--black-60);"></div>
-            <span style="padding: 0 15px;">HOẶC</span>
-            <div style="flex: 1; height: 1px; background: var(--black-60);"></div>
-        </div>
-
-        <div class="auth-tabs" style="margin-bottom: 15px;">
-            <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Đăng nhập</button>
-            <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Đăng ký</button>
-        </div>
-
-        <div id="form-login" class="auth-form active">
-            <input type="text" id="log-username" placeholder="Tên đăng nhập" class="auth-input">
-            <input type="password" id="log-pass" placeholder="Mật khẩu" class="auth-input">
-            <a href="#" class="forgot-pass">Quên mật khẩu?</a>
-            <button class="auth-submit-btn animated-green-gradient" onclick="submitRealAuth('login')">TIẾP TỤC</button>
-        </div>
-
-        <div id="form-register" class="auth-form" style="display: none;">
-            <input type="text" id="reg-username" placeholder="Tên đăng nhập" class="auth-input">
-            <input type="email" id="reg-email" placeholder="Email của bạn" class="auth-input">
-            <input type="password" id="reg-pass" placeholder="Mật khẩu" class="auth-input">
-            <button class="auth-submit-btn animated-green-gradient" onclick="submitRealAuth('register')">TẠO TÀI KHOẢN</button>
-        </div>
-    </div>
-</div>
-
-    <script> 
-        // 1. Hàm lọc game khi bấm vào thanh Slider ngang
-        function filterBySlider(tag) {
-            const gameCards = document.querySelectorAll('.hero-card');
-            const sectionTitle = document.querySelector('h2');
-            
-            sectionTitle.innerText = `Danh mục: ${tag}`;
-            document.querySelectorAll('.menu-list li').forEach(li => li.classList.remove('active'));
-
-            gameCards.forEach(card => {
-                const title = card.querySelector('.game-title-overlay').innerText;
-                const info = gameData[title];
-
-                if (info && info.tags.includes(tag)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            window.scrollTo({ top: 300, behavior: 'smooth' });
-        }
-
-        // 2. Hàm xử lý hiển thị Bảng Thông Báo (Modal)
-        function showFooterInfo(title, content) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-content').innerText = content;
-            document.getElementById('custom-modal').classList.add('show');
-        }
-
-        function closeModal() {
-            document.getElementById('custom-modal').classList.remove('show');
-        }
-
-        // Bấm ra ngoài rìa đen thì tự động đóng bảng thông báo
-        document.getElementById('custom-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-    </script>          
-
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script>
-        // 1. Cấu hình Firebase của Hoàng Kun
-        const firebaseConfig = {
-            apiKey: "AIzaSyBah5iEPTSOfavvq7g2e6mvRErSxTpztQw",
-            authDomain: "kungame-470cd.firebaseapp.com",
-            databaseURL: "https://kungame-470cd-default-rtdb.firebaseio.com",
-            projectId: "kungame-470cd",
-            storageBucket: "kungame-470cd.firebasestorage.app",
-            messagingSenderId: "182979822424",
-            appId: "1:182979822424:web:56fffd7a1ec060a6059b2d",
-            measurementId: "G-BSCWYQB0Y3"
-        };
-
-        // Khởi tạo
-        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-        const database = firebase.database();
-        const auth = firebase.auth();
-
-      // Đóng mở Sidebar Đăng nhập
-        function openAuthModal() { 
-            document.getElementById('auth-modal').classList.add('show'); 
-            document.getElementById('auth-backdrop').classList.add('show');
-        }
-        function closeAuthModal() { 
-            document.getElementById('auth-modal').classList.remove('show'); 
-            document.getElementById('auth-backdrop').classList.remove('show');
-        }
-
-        // Đóng mở Sidebar Hồ sơ
-        function openProfileSidebar() {
-            document.getElementById('right-profile-sidebar').classList.add('show');
-            document.getElementById('profile-backdrop').classList.add('show');
-        }
-        function closeProfileSidebar() {
-            document.getElementById('right-profile-sidebar').classList.remove('show');
-            document.getElementById('profile-backdrop').classList.remove('show');
-            document.getElementById('change-pass-area').style.display = 'none'; // Ẩn form đổi pass khi đóng
-        }
-
-        function switchAuthTab(tab) {
-            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-            document.getElementById('form-login').style.display = (tab === 'login') ? 'block' : 'none';
-            document.getElementById('form-register').style.display = (tab === 'register') ? 'block' : 'none';
-        }
-
-        let currentLoggedUser = "";
-
-        // Đổ dữ liệu vào Sidebar sau khi Login
-        function updateUIAfterLogin(name) {
-            currentLoggedUser = name;
-            localStorage.setItem('kunGameUser', name); 
-
-            // Đổi nút Đăng nhập thành Avatar ở Top Bar
-            const loginBtn = document.getElementById('top-login-btn');
-            const avatarBtn = document.getElementById('top-user-avatar');
-            
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (avatarBtn) avatarBtn.style.display = 'flex';
-
-            // Lấy dữ liệu đắp vào menu Profile
-            database.ref('users/' + name.replace(/\./g, '_')).once('value').then((snapshot) => {
-                const data = snapshot.val() || {};
-                
-                document.getElementById('side-username').innerText = '@' + name;
-                document.getElementById('side-email').innerText = data.email || "Đăng nhập qua Google";
-                
-                // Xử lý nút đổi mật khẩu (chỉ hiện nếu login thường)
-                document.getElementById('change-pass-btn').style.display = (data.password) ? 'flex' : 'none';
-
-                // Set Avatar tròn
-                let avatarUrl = data.photo ? data.photo : `https://api.dicebear.com/7.x/adventurer/svg?seed=${name}`;
-                document.getElementById('side-avatar').src = avatarUrl;
-                if(document.getElementById('top-avatar-img')) {
-                    document.getElementById('top-avatar-img').src = avatarUrl;
-                }
-            });
-        }
-
-function changeUserPassword() {
-    const newPass = document.getElementById('new-password').value.trim();
-    if (newPass.length < 6) { alert("Mật khẩu phải từ 6 ký tự sếp ơi!"); return; }
-    if (confirm("Xác nhận đổi mật khẩu?")) {
-        database.ref('users/' + currentLoggedUser).update({ password: newPass })
-        .then(() => {
-            alert("✅ Đã đổi mật khẩu thành công!");
-            document.getElementById('new-password').value = "";
-            // SỬA DÒNG BÊN DƯỚI LẠI THÀNH THẾ NÀY:
-            closeProfileSidebar(); 
-        });
-    }
-}
-
-        // 4. Xử lý Đăng ký / Đăng nhập (Dùng được cả Email & Username)
-        function submitRealAuth(type) {
-            if (type === 'register') {
-                const username = document.getElementById('reg-username').value.trim();
-                const email = document.getElementById('reg-email').value.trim();
-                const password = document.getElementById('reg-pass').value.trim();
-
-                if (!username || !email || !password) { alert("Nhập đủ thông tin sếp ơi!"); return; }
-
-                database.ref('users/' + username).set({ email, password, createdAt: new Date().toLocaleDateString() })
-                .then(() => { 
-                    alert("🎉 Đăng ký thành công!"); 
-                    switchAuthTab('login');
-                })
-                .catch((e) => alert("Lỗi: " + e.message));
-            } 
-            else if (type === 'login') {
-                const inputVal = document.getElementById('log-username').value.trim();
-                const password = document.getElementById('log-pass').value.trim();
-
-                if (!inputVal || !password) { alert("Vui lòng nhập tài khoản!"); return; }
-
-                const isEmail = inputVal.includes('@');
-
-                database.ref('users').once('value').then((snapshot) => {
-                    let userFound = null;
-                    snapshot.forEach((child) => {
-                        const data = child.val();
-                        if (isEmail ? data.email === inputVal : child.key === inputVal) {
-                            userFound = { username: child.key, ...data };
-                        }
-                    });
-
-                    if (userFound && userFound.password === password) {
-                        closeAuthModal();
-                        showFooterInfo('Thành công', `Chào mừng ${userFound.username} trở lại!`);
-                        updateUIAfterLogin(userFound.username);
-                    } else { 
-                        alert("Sai tài khoản hoặc mật khẩu rồi!"); 
-                    }
-                });
-            }
-        }
-
-        // 5. Đăng nhập Google (Dùng Popup)
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then((result) => {
-                const user = result.user;
-                // Lưu/Cập nhật thông tin Google vào Database
-                database.ref('users/' + user.uid).update({ 
-                    displayName: user.displayName, 
-                    email: user.email,
-                    photo: user.photoURL
-                });
-                closeAuthModal();
-                showFooterInfo('Thành công', `Chào ${user.displayName}!`);
-                updateUIAfterLogin(user.displayName);
-            }).catch((e) => alert("Lỗi Google: " + e.message));
-        }
-
-        // 6. Đóng modal khi click ra vùng ngoài màu đen
-        window.addEventListener('click', (e) => {
-            const modal = document.getElementById('auth-modal');
-            if (e.target === modal) closeAuthModal();
-        });
-
-        // Khi vừa mở web, kiểm tra xem trước đó đã đăng nhập chưa
-document.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('kunGameUser');
-    if (savedUser) {
-        // Nếu có tên đã lưu thì tự động hiển thị lên nút luôn
-        updateUIAfterLogin(savedUser);
-    }
-});
-
-// Sửa lại nút Đăng xuất để xóa sạch bộ nhớ khi thoát
-function logout() {
-    localStorage.removeItem('kunGameUser'); // Xóa tên đã lưu
-    location.reload(); // Load lại web
-}
-    </script>
-                              
+    <script>
+        // JS tạo hiệu ứng gõ và cuộn màn hình mượt mà cho Admin
+        function sendMessage() {
+            const input = document.getElementById('msg-input');
+            const chatBox = document.getElementById('chat-box');
+            
+            if(input.value.trim() !== '') {
+                const newMsg = document.createElement('div');
+                newMsg.className = 'message msg-sent';
+                newMsg.textContent = input.value;
+                chatBox.appendChild(newMsg);
+                input.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        // Bắt sự kiện ấn phím Enter để gửi nhanh
+        document.getElementById('msg-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+    
+    <script src="main.js"></script>
 </body>
 </html>
