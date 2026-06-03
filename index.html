@@ -39,6 +39,10 @@
             70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
+        @keyframes fadeInPopup {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* ========================================= */
         /* CỘT 1: DANH SÁCH KHÁCH HÀNG (SIDEBAR)     */
@@ -54,14 +58,12 @@
         .brand-title { font-size: 1.4rem; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
         .brand-title span { color: var(--primary); background: var(--primary-light); padding: 4px 10px; border-radius: 8px; font-size: 1rem;}
         
-        /* Thanh tìm kiếm bo tròn hiện đại */
         .search-box { 
             width: 100%; padding: 14px 20px; background: #ffffff; border: 1px solid var(--border-color); 
             border-radius: 20px; font-size: 0.95rem; outline: none; transition: all 0.3s ease; box-shadow: var(--shadow-sm);
         }
         .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
 
-        /* Menu Tab kiểu iOS Segmented */
         .tab-menu { 
             display: flex; margin: 0 20px 15px 20px; background: #e2e8f0; padding: 4px; border-radius: 12px; 
         }
@@ -72,9 +74,8 @@
         .tab.active { background: #ffffff; color: var(--primary); box-shadow: var(--shadow-sm); }
 
         .user-list { flex: 1; overflow-y: auto; padding: 5px 20px 20px 20px; }
-        .user-list::-webkit-scrollbar { width: 0; } /* Ẩn thanh cuộn cho gọn */
+        .user-list::-webkit-scrollbar { width: 0; }
 
-        /* Thẻ Khách Hàng (Dạng Card Nổi) */
         .user-item { 
             background: #ffffff; padding: 16px; border-radius: 16px; margin-bottom: 12px; cursor: pointer; 
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; gap: 15px; 
@@ -82,9 +83,8 @@
         }
         .user-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: #fed7aa; }
         .user-item.active { background: var(--primary-light); border: 1px solid #fdba74; box-shadow: var(--shadow-md); }
-        .user-item:active { transform: scale(0.98); } /* Hiệu ứng nhún khi bấm */
+        .user-item:active { transform: scale(0.98); }
         
-        /* Avatar Gradient siêu ngầu */
         .user-avatar { 
             width: 50px; height: 50px; flex-shrink: 0; border-radius: 14px; 
             background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); 
@@ -93,7 +93,6 @@
         }
         .user-item.active .user-avatar { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
         
-        /* Chấm xanh tỏa sáng (Pulse) */
         .status-dot { 
             position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; background: #10b981; 
             border: 2px solid #fff; border-radius: 50%; animation: pulse-green 2s infinite; 
@@ -140,7 +139,35 @@
         .msg-received { background: #ffffff; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border-color); color: var(--text-dark); box-shadow: var(--shadow-sm); }
         .msg-sent { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: var(--shadow-lg); }
 
-        .chat-input-area { padding: 20px 30px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; }
+        /* KHU VỰC NHẬP TIN NHẮN & NÚT CỘNG TRẢ LỜI NHANH */
+        .chat-input-area { 
+            position: relative; /* Thêm position relative để căn chuẩn menu popup */
+            padding: 20px 30px; background: var(--bg-panel); border-top: 1px solid var(--border-color); 
+            display: flex; gap: 15px; align-items: center; 
+        }
+
+        /* Nút Dấu + */
+        .quick-reply-trigger {
+            background: #e2e8f0; color: var(--text-gray); width: 44px; height: 44px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        }
+        .quick-reply-trigger:hover { background: #cbd5e1; color: var(--primary); transform: scale(1.05); }
+
+        /* Menu Trả Lời Nhanh */
+        .quick-reply-menu {
+            display: none; position: absolute; bottom: 85px; left: 30px; 
+            background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 320px; z-index: 1000; overflow: hidden; padding: 8px 0;
+        }
+        .quick-reply-menu.show { display: block; animation: fadeInPopup 0.2s ease-out; }
+        .qr-item {
+            padding: 14px 20px; font-size: 0.95rem; color: var(--text-dark); cursor: pointer;
+            border-bottom: 1px solid #f1f5f9; transition: background 0.2s;
+        }
+        .qr-item:last-child { border-bottom: none; }
+        .qr-item:hover { background: var(--primary-light); color: var(--primary-hover); font-weight: 500; }
+
         .chat-input { flex: 1; background: var(--bg-main); border: 1px solid transparent; border-radius: 30px; padding: 16px 25px; color: var(--text-dark); font-size: 1rem; outline: none; transition: 0.3s; }
         .chat-input:focus { background: #fff; border-color: #fdba74; box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.1); }
         .chat-input:disabled { background: #e2e8f0; cursor: not-allowed; } 
@@ -156,7 +183,6 @@
             body { padding: 0; }
             .sidebar { width: 100%; border-right: none; background: #f4f7fb;}
             
-            /* Khung chat trượt mượt mà từ phải sang */
             .chat-area { position: fixed; top: 0; left: 100%; width: 100%; height: 100dvh; z-index: 999; transition: left 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
             body.mobile-in-chat .chat-area { left: 0; }
             
@@ -170,11 +196,10 @@
             
             .chat-messages { padding: 15px; gap: 12px; }
             .message { max-width: 85%; padding: 12px 16px; font-size: 0.95rem; border-radius: 16px;}
-            .msg-received { border-bottom-left-radius: 4px; }
-            .msg-sent { border-bottom-right-radius: 4px; }
             
-            /* Khu vực nhập text thiết kế lơ lửng */
             .chat-input-area { padding: 10px 15px; background: #fff; padding-bottom: 20px;}
+            .quick-reply-trigger { width: 40px; height: 40px; }
+            .quick-reply-menu { left: 15px; bottom: 75px; width: 280px; }
             .chat-input { font-size: 16px !important; padding: 12px 20px; border-radius: 25px;}
             .send-btn { width: 46px; height: 46px; }
         }
@@ -230,6 +255,20 @@
             </div>
 
         <div class="chat-input-area">
+            <div class="quick-reply-trigger" onclick="toggleQuickReplyMenu()">
+                <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+
+            <div class="quick-reply-menu" id="quickReplyMenu">
+                <div class="qr-item" onclick="sendMenuReply('Chào bạn, bạn cần hỗ trợ về Source Code hay Script nào bên HOANGKUN STORE ạ?')">👋 Hỏi nhu cầu mua Code/Script</div>
+                <div class="qr-item" onclick="sendMenuReply('Bạn vui lòng gửi ảnh chụp bill chuyển khoản/mã giao dịch để mình check và kích hoạt nhé.')">💳 Xin Bill chuyển khoản</div>
+                <div class="qr-item" onclick="sendMenuReply('Đợi Hoàng một chút nhé, mình đang bật máy tính để check cho bạn ngay đây.')">⏳ Báo khách đợi check lỗi</div>
+                <div class="qr-item" onclick="sendMenuReply('Bạn gửi giúp mình UltraViewer hoặc AnyDesk để mình vào hỗ trợ cài đặt nhé.')">💻 Xin UltraViewer/AnyDesk</div>
+            </div>
+
             <input type="text" class="chat-input" id="msg-input" placeholder="Nhập tin nhắn hỗ trợ..." autocomplete="off">
             <button class="send-btn" onclick="if(typeof sendMessage === 'function') sendMessage();">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
@@ -262,10 +301,44 @@
         }
 
         // ==========================================
-        //  LOGIC TRƯỢT KHUNG CHAT CHO MOBILE & CLICK
+        //  LOGIC XỬ LÝ QUICK REPLY (TRẢ LỜI NHANH)
+        // ==========================================
+        function toggleQuickReplyMenu() {
+            const menu = document.getElementById('quickReplyMenu');
+            // Nếu ô chat đang bị khóa, không mở menu
+            const inputField = document.getElementById('msg-input');
+            if (inputField && inputField.disabled) return; 
+
+            menu.classList.toggle('show');
+        }
+
+        function sendMenuReply(text) {
+            const inputField = document.getElementById('msg-input');
+            if (inputField && !inputField.disabled) {
+                inputField.value = text;
+                document.getElementById('quickReplyMenu').classList.remove('show');
+                
+                // Gửi luôn tin nhắn nếu hàm sendMessage tồn tại ở main.js
+                if(typeof window.sendMessage === 'function') {
+                    window.sendMessage();
+                } else {
+                    inputField.focus(); // Nếu ko có hàm gửi, chỉ điền text và focus
+                }
+            }
+        }
+
+        // ==========================================
+        //  LOGIC TRƯỢT KHUNG CHAT MOBILE & CLICK NGOÀI
         // ==========================================
         document.addEventListener('click', function(e) {
-            // Khi bấm vào thẻ khách hàng, kể cả thẻ sinh ra từ JS
+            // Đóng menu trả lời nhanh khi click ra ngoài
+            const menu = document.getElementById('quickReplyMenu');
+            const trigger = document.querySelector('.quick-reply-trigger');
+            if (menu && menu.classList.contains('show') && !menu.contains(e.target) && !trigger.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+
+            // Xử lý mở khung chat trên Mobile
             if (e.target.closest('.user-item')) {
                 if (window.innerWidth <= 768) {
                     document.body.classList.add('mobile-in-chat');
