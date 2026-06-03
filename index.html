@@ -2,11 +2,10 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tổng Đài Quản Lý CRM | HOANGKUN STORE</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* --- ĐỒNG BỘ THƯƠNG HIỆU HOANGKUN (TRẮNG/CAM) --- */
         :root {
             --primary: #ea580c; 
             --primary-hover: #c2410c;
@@ -23,11 +22,15 @@
             background-color: var(--bg-main);
             color: var(--text-dark);
             height: 100vh;
+            height: 100dvh;
             display: flex;
             overflow: hidden;
+            position: relative;
         }
 
-        /* --- CỘT BÊN TRÁI: DANH SÁCH KHÁCH HÀNG --- */
+        /* ========================================= */
+        /* CỘT 1: DANH SÁCH KHÁCH HÀNG (SIDEBAR)     */
+        /* ========================================= */
         .sidebar {
             width: 350px;
             background: var(--bg-panel);
@@ -38,81 +41,27 @@
             z-index: 10;
         }
         
-        .sidebar-header {
-            padding: 25px 20px;
-            border-bottom: 1px solid var(--border-color);
-            background: #fff;
-        }
-
-        .brand-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        
+        .sidebar-header { padding: 25px 20px; border-bottom: 1px solid var(--border-color); background: #fff; }
+        .brand-title { font-size: 1.25rem; font-weight: 800; color: var(--text-dark); display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
         .brand-title span { color: var(--primary); }
-
-        .search-box {
-            width: 100%;
-            padding: 12px 15px;
-            background: var(--bg-main);
-            border: 1px solid transparent;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
+        .search-box { width: 100%; padding: 12px 15px; background: var(--bg-main); border: 1px solid transparent; border-radius: 8px; font-size: 0.9rem; outline: none; transition: all 0.3s ease; }
         .search-box:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
 
-        .tab-menu {
-            display: flex;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .tab {
-            padding: 15px 0;
-            margin-right: 25px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-gray);
-            cursor: pointer;
-            position: relative;
-        }
+        .tab-menu { display: flex; padding: 0 20px; border-bottom: 1px solid var(--border-color); }
+        .tab { padding: 15px 0; margin-right: 25px; font-size: 0.9rem; font-weight: 600; color: var(--text-gray); cursor: pointer; position: relative; }
         .tab.active { color: var(--primary); }
-        .tab.active::after {
-            content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0;
-        }
+        .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
 
         .user-list { flex: 1; overflow-y: auto; padding: 15px; }
         .user-list::-webkit-scrollbar { width: 5px; }
         .user-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
 
-        .user-item {
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            border: 1px solid transparent;
-        }
+        .user-item { padding: 15px; border-radius: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 15px; border: 1px solid transparent; }
         .user-item:hover { background: var(--bg-main); }
         .user-item.active { background: #fff7ed; border: 1px solid #fed7aa; }
         
-        .user-avatar { 
-            width: 48px; height: 48px; background: #e2e8f0; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: 700; color: var(--text-gray); font-size: 1.1rem;
-            position: relative;
-        }
+        .user-avatar { width: 48px; height: 48px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-gray); font-size: 1.1rem; position: relative; }
         .user-item.active .user-avatar { background: #fed7aa; color: var(--primary); }
-        
         .status-dot { position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: #10b981; border: 2px solid #fff; border-radius: 50%; }
         
         .user-info { flex: 1; overflow: hidden; }
@@ -122,7 +71,9 @@
         .user-preview { font-size: 0.85rem; color: var(--text-gray); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .unread-badge { background: #ef4444; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; margin-top: 5px; display: inline-block;}
 
-        /* --- CỘT BÊN PHẢI: KHUNG CHAT ADMIN --- */
+        /* ========================================= */
+        /* CỘT 2: KHUNG CHAT ADMIN                   */
+        /* ========================================= */
         .chat-area {
             flex: 1;
             display: flex;
@@ -130,76 +81,82 @@
             background: #f8fafc;
         }
 
-        .chat-header {
-            padding: 20px 30px;
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
+        .chat-header { padding: 20px 30px; background: var(--bg-panel); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .chat-header-client { display: flex; align-items: center; gap: 15px; }
         .header-avatar { width: 50px; height: 50px; border-radius: 50%; background: var(--bg-main); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; color: var(--text-gray); }
         .header-name { font-weight: 800; font-size: 1.2rem; color: var(--text-dark); margin-bottom: 4px; }
         .header-status { font-size: 0.85rem; color: #10b981; display: flex; align-items: center; gap: 6px; font-weight: 500;}
         
-        .chat-actions button {
-            background: #fff; border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px;
-            font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s;
-        }
+        .chat-actions button { background: #fff; border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.2s; }
         .chat-actions button:hover { background: var(--bg-main); }
         .chat-actions .btn-resolve { background: #10b981; color: #fff; border-color: #10b981; margin-left: 10px; }
-        .chat-actions .btn-resolve:hover { background: #059669; }
+        
+        /* Nút Back ẩn mặc định trên PC */
+        .back-btn { display: none; background: none; border: none; color: var(--text-dark); cursor: pointer; align-items: center; justify-content: center; margin-right: 5px;}
+        .back-btn svg { width: 32px; height: 32px; fill: currentColor; }
 
-        .chat-messages {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+        .chat-messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         .chat-messages::-webkit-scrollbar { width: 8px; }
         .chat-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
         .message { max-width: 65%; padding: 14px 20px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; position: relative; }
-        
-        /* Tin của KHÁCH HÀNG gửi tới Admin (Bên trái) */
         .msg-received { background: #ffffff; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border-color); color: var(--text-dark); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        
-        /* Tin ADMIN phản hồi (Bên phải - Màu Cam) */
         .msg-sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 4px; color: #fff; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2); }
 
-        .chat-input-area {
-            padding: 25px 30px;
-            background: var(--bg-panel);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .chat-input { 
-            flex: 1; background: var(--bg-main); border: 1px solid transparent; 
-            border-radius: 25px; padding: 15px 25px; color: var(--text-dark); 
-            font-size: 0.95rem; outline: none; transition: 0.3s;
-        }
+        .chat-input-area { padding: 25px 30px; background: var(--bg-panel); border-top: 1px solid var(--border-color); display: flex; gap: 15px; align-items: center; }
+        .chat-input { flex: 1; background: var(--bg-main); border: 1px solid transparent; border-radius: 25px; padding: 15px 25px; color: var(--text-dark); font-size: 0.95rem; outline: none; transition: 0.3s; }
         .chat-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1); }
-        
-        .send-btn { 
-            background: var(--primary); border: none; width: 50px; height: 50px; 
-            border-radius: 50%; cursor: pointer; display: flex; align-items: center; 
-            justify-content: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
-        }
+        .send-btn { background: var(--primary); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3); }
         .send-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .send-btn svg { width: 22px; height: 22px; fill: #fff; transform: translateX(2px); }
 
+        /* ================================================== */
+        /*    ĐOẠN CSS TÁCH BIỆT RIÊNG CHO MOBILE             */
+        /* ================================================== */
+        @media (max-width: 768px) {
+            body { padding: 0; }
+
+            /* 1. Sidebar giãn ra chiếm toàn bộ màn hình 100% */
+            .sidebar {
+                width: 100%;
+                border-right: none;
+            }
+
+            /* 2. Khung chat được tách ra, đẩy sang lề phải chờ lệnh (Giống hệt Messenger) */
+            .chat-area {
+                position: fixed;
+                top: 0;
+                left: 100%; /* Giấu nó sang hẳn bên phải */
+                width: 100%;
+                height: 100dvh;
+                z-index: 999;
+                transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Hiệu ứng trượt ra mượt mà */
+            }
+
+            /* 3. Khi click vào tên khách, nó gán class này để đẩy khung chat trượt vào */
+            body.mobile-in-chat .chat-area {
+                left: 0;
+            }
+
+            /* 4. Hiện nút Quay Lại */
+            .back-btn { display: flex; }
+            .chat-actions { display: none; } /* Ẩn bớt nút bên phải cho thoáng */
+
+            /* 5. Ép font to chống thu phóng và tối ưu padding nhỏ lại */
+            .chat-input { font-size: 16px !important; padding: 12px 20px; }
+            .chat-header { padding: 15px 15px; }
+            .header-avatar { width: 42px; height: 42px; font-size: 1rem; }
+            .header-name { font-size: 1.1rem; }
+            .chat-messages { padding: 15px; gap: 12px; }
+            .message { max-width: 85%; padding: 12px 16px; font-size: 0.95rem; }
+            .chat-input-area { padding: 12px 15px; }
+            .send-btn { width: 45px; height: 45px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- CỘT DANH SÁCH KHÁCH HÀNG -->
+    <!-- CỘT DANH SÁCH KHÁCH HÀNG (Bên ngoài) -->
     <div class="sidebar">
         <div class="sidebar-header">
             <div class="brand-title">HOANGKUN <span>CRM</span></div>
@@ -210,8 +167,8 @@
             <div class="tab">Đã giải quyết</div>
         </div>
         <div class="user-list">
-            <!-- User 1 -->
-            <div class="user-item active">
+            <!-- 👇 Khi click vào sẽ gọi hàm mở khung chat trên Mobile 👇 -->
+            <div class="user-item active" onclick="openChatMobile()">
                 <div class="user-avatar">
                     K1
                     <span class="status-dot"></span>
@@ -225,8 +182,8 @@
                     <div class="unread-badge">1 tin nhắn mới</div>
                 </div>
             </div>
-            <!-- User 2 -->
-            <div class="user-item">
+            
+            <div class="user-item" onclick="openChatMobile()">
                 <div class="user-avatar">K2</div>
                 <div class="user-info">
                     <div class="user-top-row">
@@ -239,10 +196,14 @@
         </div>
     </div>
 
-    <!-- CỘT KHUNG CHAT ADMIN -->
+    <!-- CỘT KHUNG CHAT (Nằm ở trong, sẽ trượt ra khi bấm) -->
     <div class="chat-area">
         <div class="chat-header">
             <div class="chat-header-client">
+                <!-- 👇 Nút Quay Lại (Back) chỉ hiện trên Mobile 👇 -->
+                <button class="back-btn" onclick="closeChatMobile()">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+                </button>
                 <div class="header-avatar">K1</div>
                 <div>
                     <div class="header-name">Khách #8921</div>
@@ -259,11 +220,11 @@
         </div>
 
         <div class="chat-messages" id="chat-box">
-            <!-- Dữ liệu Firebase sẽ tự động đổ vào đây -->
+            <!-- Firebase sẽ tự động đổ dữ liệu vào đây -->
         </div>
 
         <div class="chat-input-area">
-            <input type="text" class="chat-input" id="msg-input" placeholder="Nhập tin nhắn hỗ trợ cho Khách #8921..." autocomplete="off">
+            <input type="text" class="chat-input" id="msg-input" placeholder="Nhập tin nhắn hỗ trợ..." autocomplete="off">
             <button class="send-btn" onclick="if(typeof sendMessage === 'function') sendMessage();">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
@@ -275,6 +236,21 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <script>
+        // ==========================================
+        //  LOGIC TRƯỢT KHUNG CHAT CHO MOBILE
+        // ==========================================
+        function openChatMobile() {
+            // Kiểm tra nếu màn hình đang nhỏ (như điện thoại) thì mới kích hoạt hiệu ứng trượt
+            if (window.innerWidth <= 768) {
+                document.body.classList.add('mobile-in-chat');
+            }
+        }
+
+        function closeChatMobile() {
+            // Khi bấm nút mũi tên Back, xóa class để khung chat trượt về lại bên phải
+            document.body.classList.remove('mobile-in-chat');
+        }
+
         // Bắt sự kiện phím Enter
         document.getElementById('msg-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
@@ -284,7 +260,6 @@
         });
     </script>
     
-    <!-- NHÚNG FILE LOGIC CỦA BẠN VÀO ĐÂY -->
     <script src="main.js"></script>
 </body>
 </html>
