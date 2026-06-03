@@ -2,7 +2,6 @@
 const firebaseConfig = {
     apiKey: "AIzaSyD9Vi39Xuj8qf_bYjtZLAjpOkEvMIhzD1Y",
     authDomain: "hoangkun-chat.firebaseapp.com",
-    // Mình đã thêm sẵn link Database cực chuẩn cho bạn ở đây:
     databaseURL: "https://hoangkun-chat-default-rtdb.firebaseio.com",
     projectId: "hoangkun-chat",
     storageBucket: "hoangkun-chat.firebasestorage.app",
@@ -15,18 +14,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Nhận diện tự động xem đang ở trang Khách hay trang Admin
-const isPageAdmin = window.location.pathname.includes('admin');
+// Nhận diện đường dẫn: Có chữ "admin" (viết hoa/thường đều được) thì là trang chủ shop
+const isPageAdmin = window.location.pathname.toLowerCase().includes('admin');
 const currentRoomId = "room_khach_8921"; 
 
 if (!isPageAdmin) {
     // ==========================================
-    // LOGIC CHO KHÁCH (CHAT.HTML)
+    // LOGIC CHO KHÁCH (Nằm ở kho HoangKunCode)
     // ==========================================
     const chatBox = document.getElementById('chat-box');
-    if(chatBox) chatBox.innerHTML = ''; // Xóa tin nhắn mẫu
+    if(chatBox) chatBox.innerHTML = '';
 
-    // Lắng nghe tin nhắn mới
     db.ref('chats/' + currentRoomId).on('child_added', (snapshot) => {
         const data = snapshot.val();
         const msgDiv = document.createElement('div');
@@ -39,10 +37,9 @@ if (!isPageAdmin) {
         }
     });
 
-    // Hàm gửi tin nhắn của Khách
     window.sendMessage = function() {
         const input = document.getElementById('msg-input');
-        if(input.value.trim() !== '') {
+        if(input && input.value.trim() !== '') {
             db.ref('chats/' + currentRoomId).push({ 
                 sender: 'user', 
                 text: input.value, 
@@ -53,12 +50,11 @@ if (!isPageAdmin) {
     }
 } else {
     // ==========================================
-    // LOGIC CHO ADMIN (ADMIN/INDEX.HTML)
+    // LOGIC CHO ADMIN (Nằm ở kho Admin)
     // ==========================================
     const chatBox = document.getElementById('chat-box');
-    if(chatBox) chatBox.innerHTML = ''; // Xóa tin nhắn mẫu
+    if(chatBox) chatBox.innerHTML = '';
 
-    // Admin lắng nghe tin nhắn
     db.ref('chats/' + currentRoomId).on('child_added', (snapshot) => {
         const data = snapshot.val();
         const msgDiv = document.createElement('div');
@@ -70,17 +66,15 @@ if (!isPageAdmin) {
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        // Cập nhật text xem trước ở cột bên trái
         if(data.sender === 'user') {
             const previewText = document.querySelector('.user-preview');
             if(previewText) previewText.textContent = data.text;
         }
     });
 
-    // Hàm gửi tin nhắn của Admin
     window.sendMessage = function() {
         const input = document.getElementById('msg-input');
-        if(input.value.trim() !== '') {
+        if(input && input.value.trim() !== '') {
             db.ref('chats/' + currentRoomId).push({ 
                 sender: 'admin', 
                 text: input.value, 
