@@ -143,7 +143,7 @@
                 <div class="user-avatar">K1</div>
                 <div class="user-info">
                     <div class="user-name">Khách #8921</div>
-                    <div class="user-preview">hi</div>
+                    <div class="user-preview">Đang kết nối...</div>
                 </div>
                 <div class="unread-badge">1</div>
             </div>
@@ -167,40 +167,33 @@
         </div>
 
         <div class="chat-messages" id="chat-box">
-            <div class="message msg-sent">Chào bạn! Mình là Nguyễn Việt Hoàng. Hiện tại bạn đang cần liên hệ hợp tác, booking review phim hay có câu hỏi nào không? Hãy để lại lời nhắn nhé!</div>
-            <div class="message msg-received">hi</div>
+            <!-- Tin nhắn tĩnh đã được xóa. Firebase từ file main.js sẽ tự động đổ dữ liệu thật vào đây -->
         </div>
 
         <div class="chat-input-area">
             <input type="text" class="chat-input" id="msg-input" placeholder="Nhập phản hồi cho Khách #8921..." autocomplete="off">
-            <button class="send-btn" onclick="sendMessage()">
+            <!-- Đã gắn onClick gọi thẳng vào hàm sendMessage của main.js -->
+            <button class="send-btn" onclick="if(typeof sendMessage === 'function') sendMessage();">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
     </div>
 
-    <script>
-        // JS tạo hiệu ứng gõ và cuộn màn hình mượt mà cho Admin
-        function sendMessage() {
-            const input = document.getElementById('msg-input');
-            const chatBox = document.getElementById('chat-box');
-            
-            if(input.value.trim() !== '') {
-                const newMsg = document.createElement('div');
-                newMsg.className = 'message msg-sent';
-                newMsg.textContent = input.value;
-                chatBox.appendChild(newMsg);
-                input.value = '';
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        }
+    <!-- 1. THƯ VIỆN FIREBASE (Phải nằm trên file main.js thì mới chạy được) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
-        // Bắt sự kiện ấn phím Enter để gửi nhanh
+    <script>
+        // Chỉ giữ lại code bắt phím Enter cho tiện, còn hàm đẩy tin nhắn đã nằm trong main.js
         document.getElementById('msg-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') sendMessage();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if(typeof sendMessage === 'function') sendMessage();
+            }
         });
     </script>
     
+    <!-- 2. FILE CHỨA LOGIC DATABASE CỦA BẠN -->
     <script src="main.js"></script>
 </body>
 </html>
