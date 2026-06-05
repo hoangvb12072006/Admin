@@ -1,4 +1,4 @@
-// --- ADMIN CRM: QUẢN LÝ ĐA LUỒNG, TÌM KIẾM, TAB & MÃ KHÁCH HÀNG ---
+// --- ADMIN CRM: QUẢN LÝ ĐA LUỒNG, TÌM KIẾM, TAB, MÃ KHÁCH HÀNG & ÂM THANH ---
 const firebaseConfig = {
     apiKey: "AIzaSyD9Vi39Xuj8qf_bYjtZLAjpOkEvMIhzD1Y",
     authDomain: "hoangkun-chat.firebaseapp.com",
@@ -22,13 +22,17 @@ const userListDiv = document.querySelector('.user-list');
 const inputField = document.getElementById('msg-input');
 const searchInput = document.querySelector('.search-box');
 
+// 🌟 THÊM FILE ÂM THANH THÔNG BÁO TẠI ĐÂY (Tiếng Ting thanh lịch)
+const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/236/236-preview.mp3');
+let lastPingTime = Date.now(); // Lưu mốc thời gian để KHÔNG kêu lại tin nhắn cũ lúc F5
+
 // --- BIẾN QUẢN LÝ TAB & TÌM KIẾM ---
 let currentAdminTab = 'pending'; 
 let allPendingRooms = [];
 let allResolvedRooms = [];
 let searchQuery = '';
 
-// 1. KÍCH HOẠT THANH TÌM KIẾM (Gõ đến đâu lọc đến đó)
+// 1. KÍCH HOẠT THANH TÌM KIẾM
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase().trim();
@@ -43,13 +47,13 @@ if(tabs.length >= 2) {
         currentAdminTab = 'pending';
         tabs[0].classList.add('active');
         tabs[1].classList.remove('active');
-        renderRoomList(); // Vẽ lại danh sách
+        renderRoomList(); 
     };
     tabs[1].onclick = () => {
         currentAdminTab = 'resolved';
         tabs[1].classList.add('active');
         tabs[0].classList.remove('active');
-        renderRoomList(); // Vẽ lại danh sách
+        renderRoomList(); 
     };
 }
 
@@ -57,14 +61,14 @@ if(tabs.length >= 2) {
 db.ref('chats').on('value', (snapshot) => {
     allPendingRooms = [];
     allResolvedRooms = [];
+    let hasNewMessage = false; // Cờ theo dõi xem có tin mới không
+
     const allRooms = snapshot.val();
-    
     if(!allRooms) {
         renderRoomList();
         return;
     }
 
-    // Đảo ngược mảng để phòng mới nhất lên đầu
     const roomsArray = Object.keys(allRooms).map(roomId => {
         return { id: roomId, messages: allRooms[roomId] };
     }).reverse(); 
@@ -78,18 +82,24 @@ db.ref('chats').on('value', (snapshot) => {
             if(msg.senderName) gName = msg.senderName;
             lastMsg = msg.text;
             if(msg.action === 'ADMIN_END_CHAT') isResolved = true; 
+
+            // 🌟 KIỂM TRA TIN NHẮN MỚI ĐỂ PHÁT ÂM THANH
+            // (Chỉ kêu khi tin nhắn của Khách gửi VÀ gửi sau thời điểm load web)
+            if (msg.sender === 'user' && msg.timestamp > lastPingTime) {
+                hasNewMessage = true;
+                lastPingTime = msg.timestamp; // Cập nhật mốc thời gian mới
+            }
         });
 
-        // 🌟 TẠO MÃ KHÁCH HÀNG TỰ ĐỘNG (Lấy 5 số cuối của ID phòng)
+        // MÃ KHÁCH HÀNG
         let cusId = "#" + room.id.replace('room_', '').slice(-5);
-        let displayName = cusId + " - " + gName; // Format: Mã trước - Tên sau
+        let displayName = cusId + " - " + gName; 
 
-        room.gName = gName;             // Tên gốc để lấy chữ cái đầu làm Avatar
-        room.displayName = displayName; // Tên đã ghép Mã Khách Hàng
+        room.gName = gName;             
+        room.displayName = displayName; 
         room.cusId = cusId;
         room.lastMsg = lastMsg;
 
-        // Phân loại vào 2 mảng Tab
         if(isResolved) {
             allResolvedRooms.push(room);
         } else {
@@ -97,18 +107,24 @@ db.ref('chats').on('value', (snapshot) => {
         }
     });
 
+    // 🌟 PHÁT ÂM THANH "TING" NẾU CÓ TIN NHẮN MỚI
+    if (hasNewMessage) {
+        // Trình duyệt web bắt buộc người dùng phải click vào màn hình ít nhất 1 lần mới cho phát âm thanh
+        notifySound.play().catch(error => {
+            console.log("Trình duyệt chặn âm thanh vì bạn chưa click chuột vào website.");
+        });
+    }
+
     renderRoomList();
 });
 
-// 4. HÀM VẼ DANH SÁCH RA MÀN HÌNH (CÓ LỌC TÌM KIẾM)
+// 4. HÀM VẼ DANH SÁCH RA MÀN HÌNH
 function renderRoomList() {
     if(!userListDiv) return;
     userListDiv.innerHTML = '';
     
-    // Lấy dữ liệu theo Tab đang chọn
     let listToRender = currentAdminTab === 'pending' ? allPendingRooms : allResolvedRooms;
 
-    // Lọc dữ liệu nếu Admin đang gõ vào thanh Tìm kiếm
     if (searchQuery !== '') {
         listToRender = listToRender.filter(room => 
             room.displayName.toLowerCase().includes(searchQuery) || 
@@ -116,23 +132,19 @@ function renderRoomList() {
         );
     }
 
-    // Nếu không có dữ liệu
     if(listToRender.length === 0) {
         userListDiv.innerHTML = `
             <div style="text-align:center; padding: 40px 20px; color: #94a3b8;">
                 <div style="font-size: 2.5rem; margin-bottom: 10px;">📭</div>
-                <div style="font-size: 0.9rem; font-weight: 500;">Không tìm thấy khách hàng!</div>
+                <div style="font-size: 0.9rem; font-weight: 500;">Không có dữ liệu!</div>
             </div>
         `;
         return;
     }
 
-    // Đổ danh sách khách hàng ra
     listToRender.forEach(room => {
         const userItem = document.createElement('div');
         userItem.className = 'user-item' + (currentRoomId === room.id ? ' active' : '');
-        
-        // Truyền thẳng displayName (Mã + Tên) vào hàm loadRoom
         userItem.onclick = () => loadRoom(room.id, room.displayName, room.gName, userItem);
         
         const dotHTML = currentAdminTab === 'pending' ? `<span class="status-dot"></span>` : ``;
@@ -157,23 +169,19 @@ function renderRoomList() {
 }
 
 // 5. ADMIN CLICK VÀO KHÁCH ĐỂ MỞ PHÒNG CHAT
-// (Thêm tham số originalName để lấy đúng chữ cái đầu cho Avatar)
 window.loadRoom = function(roomId, displayName, originalName, element) {
     currentRoomId = roomId;
     window.currentRoomId = roomId; 
     if(chatBox) chatBox.innerHTML = ''; 
     
-    // Mở khóa ô nhập
     if(inputField) {
         inputField.disabled = false;
         inputField.placeholder = "Nhập tin nhắn hỗ trợ...";
     }
     
-    // Cập nhật Header với Mã Khách Hàng + Tên
     const headerNameBox = document.getElementById('active-guest-name');
     if(headerNameBox) headerNameBox.textContent = displayName;
     
-    // Avatar vẫn lấy chữ cái đầu của Tên Gốc
     const headerAvatar = document.getElementById('active-guest-avatar');
     if(headerAvatar) {
         headerAvatar.textContent = originalName.charAt(0).toUpperCase();
@@ -221,7 +229,12 @@ window.loadRoom = function(roomId, displayName, originalName, element) {
 // 6. ADMIN GỬI TIN NHẮN
 window.sendMessage = function() {
     if(!currentRoomId) {
-        alert('Vui lòng click chọn một khách hàng!'); return;
+        if(typeof showToast === 'function') {
+            showToast('Vui lòng chọn một khách hàng!', 'error');
+        } else {
+            alert('Vui lòng chọn một khách hàng!');
+        }
+        return;
     }
     const input = document.getElementById('msg-input');
     if(input && input.value.trim() !== '') {
